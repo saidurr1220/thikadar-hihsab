@@ -1,0 +1,36 @@
+import type { Metadata } from "next";
+import { Noto_Sans_Bengali } from "next/font/google";
+import "./globals.css";
+
+const notoSansBengali = Noto_Sans_Bengali({
+  subsets: ["bengali", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-noto-sans-bengali",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "থিকাদারি হিসাব - Construction Contractor Accounting",
+  description:
+    "Complete accounting system for Bangladeshi construction contractors",
+  manifest: "/manifest.json",
+  themeColor: "#2563eb",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="bn" suppressHydrationWarning>
+      <body className={notoSansBengali.variable}>{children}</body>
+    </html>
+  );
+}
