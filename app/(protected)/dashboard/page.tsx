@@ -96,30 +96,17 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                ঠ
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  ঠিকাদারি হিসাব
-                </h1>
-                <p className="text-xs text-gray-600">{profile.full_name}</p>
-              </div>
-            </div>
-            <form action="/api/auth/signout" method="post">
-              <Button type="submit" variant="outline" size="sm" className="shadow-sm">
-                Sign Out
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Welcome Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            স্বাগতম, {profile.full_name}
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            আপনার সকল প্রজেক্টের সারসংক্ষেপ এবং হিসাব
+          </p>
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
@@ -233,17 +220,6 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <DashboardCharts expenseData={expenseData} />
             </div>
-          </div>
-        )}
-
-        {/* Create Tender Button */}
-        {(profile.role === "owner" || profile.role === "admin") && (
-          <div className="mb-6 sm:mb-8">
-            <Link href="/admin/tenders/create">
-              <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all">
-                + নতুন টেন্ডার তৈরি করুন
-              </Button>
-            </Link>
           </div>
         )}
 
