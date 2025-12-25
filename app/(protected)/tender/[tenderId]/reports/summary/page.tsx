@@ -1,49 +1,91 @@
-import { createClient } from "@/lib/supabase/server";
+"use client";
+
+import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
+import { useEffect, useState } from "react";
 
-export default async function TenderSummaryPage({
+export default function TenderSummaryPage({
   params,
 }: {
   params: { tenderId: string };
 }) {
-  const supabase = createClient();
+  const [loading, setLoading] = useState(true);
+  const [tender, setTender] = useState<any>(null);
+  const [labor, setLabor] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [advances, setAdvances] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [balances, setBalances] = useState<any[]>([]);
 
-  // Load tender info
-  const { data: tender } = await supabase
-    .from("tenders")
-    .select("*")
-    .eq("id", params.tenderId)
-    .single();
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = createClient();
 
-  // Load all data
-  const { data: labor } = await supabase
-    .from("labor_entries")
-    .select("*")
-    .eq("tender_id", params.tenderId);
+      // Load tender info
+      const { data: tenderData } = await supabase
+        .from("tenders")
+        .select("*")
+        .eq("id", params.tenderId)
+        .single();
+      setTender(tenderData);
 
-  const { data: materials } = await supabase
-    .from("material_purchases")
-    .select("*, materials(name_bn)")
-    .eq("tender_id", params.tenderId);
+      // Load all data
+      const { data: laborData } = await supabase
+        .from("labor_entries")
+        .select("*")
+        .eq("tender_id", params.tenderId);
+      setLabor(laborData || []);
 
-  const { data: activities } = await supabase
-    .from("activity_expenses")
-    .select("*, expense_categories(name_bn)")
-    .eq("tender_id", params.tenderId);
+      const { data: materialsData } = await supabase
+        .from("material_purchases")
+        .select("*, materials(name_bn)")
+        .eq("tender_id", params.tenderId);
+      setMaterials(materialsData || []);
 
-  const { data: advances } = await supabase
-    .from("advances")
-    .select("*")
-    .eq("tender_id", params.tenderId);
+      const { data: activitiesData } = await supabase
+        .from("activity_expenses")
+        .select("*, expense_categories(name_bn)")
+        .eq("tender_id", params.tenderId);
+      setActivities(activitiesData || []);
 
-  const { data: expenses } = await supabase
-    .from("expense_submissions")
-    .select("*")
-    .eq("tender_id", params.tenderId)
-    .eq("status", "approved");
+      const { data: advancesData } = await supabase
+        .from("advances")
+        .select("*")
+        .eq("tender_id", params.tenderId);
+      setAdvances(advancesData || []);
+
+      const { data: expensesData } = await supabase
+        .from("expense_submissions")
+        .select("*")
+        .eq("tender_id", params.tenderId)
+        .eq("status", "approved");
+      setExpenses(expensesData || []);
+
+      // Person balances
+      const { data: balancesData } = await supabase.rpc("get_person_balances", {
+        p_tender_id: params.tenderId,
+      });
+      setBalances(balancesData || []);
+
+      setLoading(false);
+    };
+
+    loadData();
+  }, [params.tenderId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg">লোড হচ্ছে...</div>
+        </div>
+      </div>
+    );
+  }
 
   // Calculate totals
   const laborTotal =
@@ -92,11 +134,6 @@ export default async function TenderSummaryPage({
   const topActivities = Object.entries(activitiesByCategory || {})
     .sort(([, a]: any, [, b]: any) => b - a)
     .slice(0, 5);
-
-  // Person balances
-  const { data: balances } = await supabase.rpc("get_person_balances", {
-    p_tender_id: params.tenderId,
-  });
 
   const laborPercent = grandTotal > 0 ? (laborTotal / grandTotal) * 100 : 0;
   const materialsPercent =

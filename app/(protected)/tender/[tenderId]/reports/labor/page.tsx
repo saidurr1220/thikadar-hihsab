@@ -117,5 +117,6 @@ export default async function LaborRegisterPage({
           </Card>
         </div>
       </div>
+    </div>
   );
 }

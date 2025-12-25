@@ -99,6 +99,7 @@ export default async function ActivitiesRegisterPage({
           </Card>
         </div>
       </div>
+    </div>
   );
 }
 

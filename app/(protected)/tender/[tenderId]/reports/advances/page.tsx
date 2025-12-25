@@ -99,5 +99,6 @@ export default async function AdvancesRegisterPage({
           </Card>
         </div>
       </div>
+    </div>
   );
 }

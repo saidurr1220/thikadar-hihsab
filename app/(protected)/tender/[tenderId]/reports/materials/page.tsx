@@ -104,5 +104,6 @@ export default async function MaterialsRegisterPage({
           </Card>
         </div>
       </div>
+    </div>
   );
 }
