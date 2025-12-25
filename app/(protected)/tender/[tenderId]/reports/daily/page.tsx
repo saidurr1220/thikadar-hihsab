@@ -131,7 +131,7 @@ export default function DailySheetPage({
             href={`/tender/${params.tenderId}/reports`}
             className="text-blue-600 hover:text-blue-800 text-sm"
           >
-            â† à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ à¦®à§‡à¦¨à§
+            ← রিপোর্ট মেনু
           </Link>
         </div>
 
@@ -194,24 +194,22 @@ export default function DailySheetPage({
           <div className="print-content">
             {/* Report Header */}
             <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
-              <h1 className="text-2xl font-bold mb-2">
-                ঠিকাদারি হিসাব
-              </h1>
+              <h1 className="text-2xl font-bold mb-2">ঠিকাদারি হিসাব</h1>
               <h2 className="text-xl font-semibold mb-4">
                 {labels.dailySheet}
               </h2>
               <div className="text-sm space-y-1">
                 <p>
-                  <strong>à¦Ÿà§‡à¦¨à§à¦¡à¦¾à¦° à¦•à§‹à¦¡:</strong>{" "}
+                  <strong>টেন্ডার কোড:</strong>{" "}
                   {tender?.tender_code}
                 </p>
                 <p>
-                  <strong>à¦ªà§à¦°à¦•à¦²à§à¦ªà§‡à¦° à¦¨à¦¾à¦®:</strong>{" "}
+                  <strong>প্রকল্পের নাম:</strong>{" "}
                   {tender?.project_name}
                 </p>
                 {tender?.location && (
                   <p>
-                    <strong>à¦¸à§à¦¥à¦¾à¦¨:</strong> {tender.location}
+                    <strong>স্থান:</strong> {tender.location}
                   </p>
                 )}
                 <p>
@@ -223,12 +221,12 @@ export default function DailySheetPage({
             {/* Labor Section */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>à¦¶à§à¦°à¦®à¦¿à¦• à¦–à¦°à¦š</CardTitle>
+                <CardTitle>শ্রমিক খরচ</CardTitle>
               </CardHeader>
               <CardContent>
                 {data.labor.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">
-                    à¦•à§‹à¦¨ à¦à¦¨à§à¦Ÿà§à¦°à¦¿ à¦¨à§‡à¦‡
+                    কোন এন্ট্রি নেই
                   </p>
                 ) : (
                   <table className="w-full text-sm">
@@ -238,7 +236,7 @@ export default function DailySheetPage({
                         <th className="text-left py-2">বিবরণ</th>
                         <th className="text-right py-2">লোক</th>
                         <th className="text-right py-2">খোরাকি</th>
-                        <th className="text-right py-2">à¦®à¦œà§à¦°à¦¿</th>
+                        <th className="text-right py-2">মজুরি</th>
                         <th className="text-right py-2">মোট</th>
                       </tr>
                     </thead>
@@ -247,7 +245,7 @@ export default function DailySheetPage({
                         <tr key={l.id} className="border-b">
                           <td className="py-2">
                             {l.labor_type === "contract"
-                              ? "à¦šà§à¦•à§à¦¤à¦¿"
+                              ? "ঠেকতি"
                               : "দৈনিক"}
                           </td>
                           <td className="py-2">
@@ -274,7 +272,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={5} className="text-right py-2">
-                          à¦‰à¦ªমোট:
+                          উপমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(laborTotal)}
@@ -289,26 +287,22 @@ export default function DailySheetPage({
             {/* Materials Section */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>মালামাল à¦•à§à¦°à¦¯à¦¼</CardTitle>
+                <CardTitle>মালামাল ক্রয়</CardTitle>
               </CardHeader>
               <CardContent>
                 {data.materials.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">
-                    à¦•à§‹à¦¨ à¦à¦¨à§à¦Ÿà§à¦°à¦¿ à¦¨à§‡à¦‡
+                    কোন এন্ট্রি নেই
                   </p>
                 ) : (
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-2">
-                          মালামাল
-                        </th>
+                        <th className="text-left py-2">মালামাল</th>
                         <th className="text-right py-2">পরিমাণ</th>
                         <th className="text-right py-2">দর</th>
                         <th className="text-right py-2">মোট</th>
-                        <th className="text-left py-2">
-                          সরবরাহকারী
-                        </th>
+                        <th className="text-left py-2">সরবরাহকারী</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -332,7 +326,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={3} className="text-right py-2">
-                          à¦‰à¦ªমোট:
+                          উপমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(materialsTotal)}
@@ -353,7 +347,7 @@ export default function DailySheetPage({
               <CardContent>
                 {data.activities.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">
-                    à¦•à§‹à¦¨ à¦à¦¨à§à¦Ÿà§à¦°à¦¿ à¦¨à§‡à¦‡
+                    কোন এন্ট্রি নেই
                   </p>
                 ) : (
                   <table className="w-full text-sm">
@@ -363,7 +357,7 @@ export default function DailySheetPage({
                         <th className="text-left py-2">বিবরণ</th>
                         <th className="text-right py-2">পরিমাণ</th>
                         <th className="text-left py-2">
-                          à¦¬à¦¿à¦•à§à¦°à§‡à¦¤à¦¾
+                          বিক্রেতা
                         </th>
                       </tr>
                     </thead>
@@ -382,7 +376,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={2} className="text-right py-2">
-                          à¦‰à¦ªমোট:
+                          উপমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(activitiesTotal)}
@@ -424,7 +418,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={2} className="text-right py-2">
-                          à¦‰à¦ªমোট:
+                          উপমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(advancesTotal)}
@@ -484,19 +478,19 @@ export default function DailySheetPage({
               <div>
                 <p className="mb-8">à¦ªà§à¦°à¦¸à§à¦¤à§à¦¤à¦•à¦¾à¦°à§€</p>
                 <p className="border-t pt-2">
-                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–
+                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ তারিখ
                 </p>
               </div>
               <div>
                 <p className="mb-8">à¦ªà¦°à§€à¦•à§à¦·à¦•</p>
                 <p className="border-t pt-2">
-                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–
+                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ তারিখ
                 </p>
               </div>
               <div>
                 <p className="mb-8">à¦…à¦¨à§à¦®à§‹à¦¦à¦¨à¦•à¦¾à¦°à§€</p>
                 <p className="border-t pt-2">
-                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–
+                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ তারিখ
                 </p>
               </div>
             </div>

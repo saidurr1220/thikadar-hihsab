@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -99,31 +99,27 @@ export default function ActivitiesRegisterPage({
               </h2>
               <div className="text-sm space-y-1">
                 <p>
-                  <strong>à¦Ÿà§‡à¦¨à§à¦¡à¦¾à¦° à¦•à§‹à¦¡:</strong>{" "}
-                  {tender?.tender_code}
+                  <strong>টেন্ডার কোড:</strong> {tender?.tender_code}
                 </p>
                 <p>
-                  <strong>à¦ªà§à¦°à¦•à¦²à§à¦ªà§‡à¦° à¦¨à¦¾à¦®:</strong>{" "}
-                  {tender?.project_name}
+                  <strong>প্রকল্পের নাম:</strong> {tender?.project_name}
                 </p>
               </div>
             </div>
 
             <Card>
               <CardHeader>
-                <CardTitle>কাজের খরচ à¦¸à¦®à§‚à¦¹</CardTitle>
+                <CardTitle>খাজনা খরচ সমূহ</CardTitle>
               </CardHeader>
               <CardContent>
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2">à¦¤à¦¾à¦°à¦¿à¦–</th>
-                      <th className="text-left py-2">বিভাগ</th>
+                      <th className="text-left py-2">তারিখ</th>
+                      <th className="text-left py-2">বিষয়</th>
                       <th className="text-left py-2">বিবরণ</th>
                       <th className="text-right py-2">পরিমাণ</th>
-                      <th className="text-left py-2">
-                        à¦¬à¦¿à¦•à§à¦°à§‡à¦¤à¦¾
-                      </th>
+                      <th className="text-left py-2">বিক্রেতা</th>
                     </tr>
                   </thead>
                   <tbody>
