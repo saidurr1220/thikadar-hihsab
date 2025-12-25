@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -28,6 +28,7 @@ export default function CashExpensePage({
     description: "",
     amount: "",
     vendor: "",
+    paymentMethod: "cash",
     paymentRef: "",
     notes: "",
   });
@@ -39,9 +40,10 @@ export default function CashExpensePage({
   const loadCategories = async () => {
     const supabase = createClient();
     const { data } = await supabase
-      .from("expense_categories")
+      .from("activity_categories")
       .select("*")
       .eq("is_active", true)
+      .is("parent_id", null)
       .order("name_bn");
 
     if (data) setCategories(data);
@@ -50,9 +52,9 @@ export default function CashExpensePage({
   const loadSubcategories = async (categoryId: string) => {
     const supabase = createClient();
     const { data } = await supabase
-      .from("expense_subcategories")
+      .from("activity_categories")
       .select("*")
-      .eq("category_id", categoryId)
+      .eq("parent_id", categoryId)
       .eq("is_active", true)
       .order("name_bn");
 
@@ -89,23 +91,22 @@ export default function CashExpensePage({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setError("আপনি লগইন করা নেই");
+        setError("Please sign in first.");
         setLoading(false);
         return;
       }
 
-      // Insert as activity expense with cash payment
       const { error: insertError } = await supabase
         .from("activity_expenses")
         .insert({
           tender_id: params.tenderId,
-          activity_date: formData.expenseDate,
+          expense_date: formData.expenseDate,
           category_id: formData.categoryId,
           subcategory_id: formData.subcategoryId || null,
           description: formData.description,
           amount: parseFloat(formData.amount),
           vendor: formData.vendor || null,
-          payment_method: "cash",
+          payment_method: formData.paymentMethod as any,
           payment_ref: formData.paymentRef || null,
           notes: formData.notes || null,
           created_by: user.id,
@@ -119,7 +120,7 @@ export default function CashExpensePage({
 
       router.push(`/tender/${params.tenderId}/activities`);
     } catch (err) {
-      setError("এন্ট্রি যোগ করতে সমস্যা হয়েছে");
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
@@ -132,15 +133,15 @@ export default function CashExpensePage({
             href={`/tender/${params.tenderId}`}
             className="text-blue-600 hover:text-blue-800"
           >
-            ← টেন্ডার ড্যাশবোর্ড
+            Back to tender dashboard
           </Link>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>নগদ খরচ (সরাসরি)</CardTitle>
+            <CardTitle>Cash expense</CardTitle>
             <p className="text-sm text-gray-600">
-              অগ্রিম ছাড়া সরাসরি নগদ খরচ - দৈনিক সাইট খরচের জন্য
+              Use this to record a cash expense directly under activities.
             </p>
           </CardHeader>
           <CardContent>
@@ -153,8 +154,8 @@ export default function CashExpensePage({
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  💡 এই খরচ সরাসরি নগদে পরিশোধ করা হয়েছে এবং কাজের খরচ হিসেবে
-                  রেকর্ড হবে। কোন ব্যক্তির অগ্রিম থেকে কাটা হবে না।
+                  This entry will be added to activity expenses and included in
+                  your totals.
                 </p>
               </div>
 
@@ -182,7 +183,7 @@ export default function CashExpensePage({
                   required
                   disabled={loading}
                 >
-                  <option value="">নির্বাচন করুন</option>
+                  <option value="">Select category</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name_bn}
@@ -202,7 +203,7 @@ export default function CashExpensePage({
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
                     disabled={loading}
                   >
-                    <option value="">নির্বাচন করুন</option>
+                    <option value="">Select subcategory</option>
                     {subcategories.map((sub) => (
                       <option key={sub.id} value={sub.id}>
                         {sub.name_bn}
@@ -219,7 +220,7 @@ export default function CashExpensePage({
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="বিস্তারিত বিবরণ"
+                  placeholder="What was this expense for?"
                   required
                   disabled={loading}
                 />
@@ -246,19 +247,35 @@ export default function CashExpensePage({
                   name="vendor"
                   value={formData.vendor}
                   onChange={handleChange}
-                  placeholder="বিক্রেতার নাম (ঐচ্ছিক)"
+                  placeholder="Vendor name (optional)"
                   disabled={loading}
                 />
               </div>
 
               <div>
-                <Label htmlFor="paymentRef">পেমেন্ট রেফারেন্স</Label>
+                <Label htmlFor="paymentMethod">{labels.paymentMethod}</Label>
+                <select
+                  id="paymentMethod"
+                  name="paymentMethod"
+                  value={formData.paymentMethod}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  disabled={loading}
+                >
+                  <option value="cash">{labels.cash}</option>
+                  <option value="bank">{labels.bank}</option>
+                  <option value="mfs">{labels.mfs}</option>
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="paymentRef">Payment reference</Label>
                 <Input
                   id="paymentRef"
                   name="paymentRef"
                   value={formData.paymentRef}
                   onChange={handleChange}
-                  placeholder="রশিদ নম্বর বা রেফারেন্স (ঐচ্ছিক)"
+                  placeholder="Cash note or receipt reference"
                   disabled={loading}
                 />
               </div>

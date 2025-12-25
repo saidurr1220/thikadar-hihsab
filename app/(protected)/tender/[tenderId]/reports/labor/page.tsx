@@ -26,7 +26,10 @@ export default async function LaborRegisterPage({
 
   const total =
     labor?.reduce(
-      (sum, l) => sum + (l.khoraki_total || 0) + (l.wage_total || 0),
+      (sum, l) =>
+        sum +
+        Number(l.khoraki_total || 0) +
+        Number(l.wage_total || 0),
       0
     ) || 0;
 
@@ -114,18 +117,5 @@ export default async function LaborRegisterPage({
           </Card>
         </div>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          @page {
-            size: A4 landscape;
-            margin: 1.5cm;
-          }
-        }
-      `}</style>
-    </div>
   );
 }

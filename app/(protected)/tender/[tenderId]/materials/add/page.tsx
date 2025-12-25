@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,8 @@ export default function AddMaterialPage({
   const [error, setError] = useState("");
   const [isBulk, setIsBulk] = useState(false);
   const [materials, setMaterials] = useState<any[]>([]);
+  const [people, setPeople] = useState<any[]>([]);
+  const [personKey, setPersonKey] = useState("");
 
   const [formData, setFormData] = useState({
     purchaseDate: new Date().toISOString().split("T")[0],
@@ -29,22 +31,23 @@ export default function AddMaterialPage({
     quantity: "",
     unitRate: "",
     totalAmount: "",
-    // Bulk breakdown
     baseRatePerCft: "",
     qtyCft: "",
     transportVaraCost: "",
     unloadRatePerCft: "",
     baseCost: "",
     unloadCost: "",
-    // Common
     supplier: "",
     paymentMethod: "cash",
     paymentRef: "",
+    personId: "",
+    personType: "",
     notes: "",
   });
 
   useEffect(() => {
     loadMaterials();
+    loadPeople();
   }, []);
 
   const loadMaterials = async () => {
@@ -58,6 +61,64 @@ export default function AddMaterialPage({
     if (data) setMaterials(data);
   };
 
+  const loadPeople = async () => {
+    const supabase = createClient();
+
+    const { data: authAssignments } = await supabase
+      .from("tender_assignments")
+      .select(
+        `
+        user_id,
+        role,
+        profiles (id, full_name)
+      `
+      )
+      .eq("tender_id", params.tenderId)
+      .not("user_id", "is", null);
+
+    const { data: personAssignments } = await supabase
+      .from("tender_assignments")
+      .select(
+        `
+        person_id,
+        role,
+        persons (id, full_name)
+      `
+      )
+      .eq("tender_id", params.tenderId)
+      .not("person_id", "is", null);
+
+    const list: any[] = [];
+
+    if (authAssignments) {
+      authAssignments.forEach((ta: any) => {
+        if (ta.profiles) {
+          list.push({
+            id: ta.profiles.id,
+            name: ta.profiles.full_name,
+            role: ta.role,
+            type: "user",
+          });
+        }
+      });
+    }
+
+    if (personAssignments) {
+      personAssignments.forEach((ta: any) => {
+        if (ta.persons) {
+          list.push({
+            id: ta.persons.id,
+            name: ta.persons.full_name,
+            role: ta.role,
+            type: "person",
+          });
+        }
+      });
+    }
+
+    setPeople(list);
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -66,7 +127,6 @@ export default function AddMaterialPage({
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Auto-calculate for regular purchase
     if (!isBulk) {
       if (name === "quantity" || name === "unitRate") {
         const qty =
@@ -90,7 +150,6 @@ export default function AddMaterialPage({
       }
     }
 
-    // Auto-calculate for bulk breakdown
     if (isBulk) {
       if (
         name === "qtyCft" ||
@@ -131,7 +190,6 @@ export default function AddMaterialPage({
       }
     }
 
-    // Auto-fill unit when material selected
     if (name === "materialId") {
       const material = materials.find((m) => m.id === value);
       if (material) {
@@ -142,6 +200,24 @@ export default function AddMaterialPage({
         }));
       }
     }
+
+    if (name === "paymentMethod" && value !== "advance") {
+      setPersonKey("");
+      setFormData((prev) => ({ ...prev, personId: "", personType: "" }));
+    }
+  };
+
+  const handlePersonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setPersonKey(value);
+
+    if (!value) {
+      setFormData((prev) => ({ ...prev, personId: "", personType: "" }));
+      return;
+    }
+
+    const [personType, personId] = value.split(":");
+    setFormData((prev) => ({ ...prev, personId, personType }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -156,7 +232,13 @@ export default function AddMaterialPage({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setError("আপনি লগইন করা নেই");
+        setError("Please sign in first.");
+        setLoading(false);
+        return;
+      }
+
+      if (formData.paymentMethod === "advance" && !formData.personId) {
+        setError("Select a person when paying from advance.");
         setLoading(false);
         return;
       }
@@ -168,9 +250,9 @@ export default function AddMaterialPage({
           purchase_date: formData.purchaseDate,
           material_id: formData.materialId || null,
           custom_item_name: formData.customItemName || null,
-          unit: formData.unit,
-          quantity: parseFloat(formData.quantity),
-          unit_rate: parseFloat(formData.unitRate),
+          unit: formData.unit || null,
+          quantity: formData.quantity ? parseFloat(formData.quantity) : null,
+          unit_rate: formData.unitRate ? parseFloat(formData.unitRate) : null,
           total_amount: parseFloat(formData.totalAmount),
           is_bulk_breakdown: isBulk,
           base_rate_per_cft:
@@ -190,9 +272,7 @@ export default function AddMaterialPage({
           base_cost:
             isBulk && formData.baseCost ? parseFloat(formData.baseCost) : null,
           unload_cost:
-            isBulk && formData.unloadCost
-              ? parseFloat(formData.unloadCost)
-              : null,
+            isBulk && formData.unloadCost ? parseFloat(formData.unloadCost) : null,
           supplier: formData.supplier || null,
           payment_method: formData.paymentMethod as any,
           payment_ref: formData.paymentRef || null,
@@ -206,9 +286,42 @@ export default function AddMaterialPage({
         return;
       }
 
+      if (formData.paymentMethod === "advance") {
+        const isAuthUser = formData.personType === "user";
+        const materialName = formData.materialId
+          ? materials.find((m) => m.id === formData.materialId)?.name_bn
+          : formData.customItemName;
+        const expenseDescription = materialName
+          ? `Material: ${materialName}`
+          : "Material purchase";
+
+        const { error: expenseError } = await supabase
+          .from("expense_submissions")
+          .insert({
+            tender_id: params.tenderId,
+            expense_date: formData.purchaseDate,
+            category_id: null,
+            subcategory_id: null,
+            description: expenseDescription,
+            amount: parseFloat(formData.totalAmount),
+            notes: formData.notes || null,
+            submitted_by: isAuthUser ? formData.personId : user.id,
+            person_id: !isAuthUser ? formData.personId : null,
+            status: "approved",
+            approved_by: user.id,
+            approved_at: new Date().toISOString(),
+          });
+
+        if (expenseError) {
+          setError(expenseError.message);
+          setLoading(false);
+          return;
+        }
+      }
+
       router.push(`/tender/${params.tenderId}/materials`);
     } catch (err) {
-      setError("এন্ট্রি যোগ করতে সমস্যা হয়েছে");
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
@@ -221,13 +334,17 @@ export default function AddMaterialPage({
             href={`/tender/${params.tenderId}`}
             className="text-blue-600 hover:text-blue-800"
           >
-            ← টেন্ডার ড্যাশবোর্ড
+            Back to tender dashboard
           </Link>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>মালামাল ক্রয় যোগ করুন</CardTitle>
+            <CardTitle>Add material purchase</CardTitle>
+            <p className="text-sm text-gray-600">
+              Track regular material purchases or bulk breakdown items like
+              sand/stone.
+            </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -237,7 +354,6 @@ export default function AddMaterialPage({
                 </div>
               )}
 
-              {/* Purchase Type Toggle */}
               <div className="flex gap-2 border-b">
                 <button
                   type="button"
@@ -248,7 +364,7 @@ export default function AddMaterialPage({
                       : "text-gray-600"
                   }`}
                 >
-                  সাধারণ
+                  Regular
                 </button>
                 <button
                   type="button"
@@ -259,11 +375,10 @@ export default function AddMaterialPage({
                       : "text-gray-600"
                   }`}
                 >
-                  {labels.bulkBreakdown} (বালু/পাথর)
+                  Bulk breakdown
                 </button>
               </div>
 
-              {/* Date */}
               <div>
                 <Label htmlFor="purchaseDate">{labels.date} *</Label>
                 <Input
@@ -277,7 +392,6 @@ export default function AddMaterialPage({
                 />
               </div>
 
-              {/* Material Selection */}
               <div>
                 <Label htmlFor="materialId">{labels.item}</Label>
                 <select
@@ -288,7 +402,7 @@ export default function AddMaterialPage({
                   className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
                   disabled={loading}
                 >
-                  <option value="">নির্বাচন করুন</option>
+                  <option value="">Select material</option>
                   {materials.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.name_bn}
@@ -297,25 +411,23 @@ export default function AddMaterialPage({
                 </select>
               </div>
 
-              {/* Custom Item Name */}
               {!formData.materialId && (
                 <div>
-                  <Label htmlFor="customItemName">কাস্টম আইটেম নাম</Label>
+                  <Label htmlFor="customItemName">Custom item name</Label>
                   <Input
                     id="customItemName"
                     name="customItemName"
                     value={formData.customItemName}
                     onChange={handleChange}
-                    placeholder="আইটেমের নাম লিখুন"
+                    placeholder="Enter item name"
                     disabled={loading}
                   />
                 </div>
               )}
 
               {!isBulk ? (
-                /* Regular Purchase Fields */
                 <>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="quantity">{labels.quantity} *</Label>
                       <Input
@@ -325,7 +437,7 @@ export default function AddMaterialPage({
                         step="0.001"
                         value={formData.quantity}
                         onChange={handleChange}
-                        required
+                        required={!isBulk}
                         disabled={loading}
                       />
                     </div>
@@ -336,14 +448,14 @@ export default function AddMaterialPage({
                         name="unit"
                         value={formData.unit}
                         onChange={handleChange}
-                        required
-                        placeholder="ব্যাগ/কেজি/ঘনফুট"
+                        required={!isBulk}
+                        placeholder="Unit"
                         disabled={loading}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="unitRate">{labels.rate} *</Label>
                       <Input
@@ -353,7 +465,7 @@ export default function AddMaterialPage({
                         step="0.01"
                         value={formData.unitRate}
                         onChange={handleChange}
-                        required
+                        required={!isBulk}
                         disabled={loading}
                       />
                     </div>
@@ -366,18 +478,17 @@ export default function AddMaterialPage({
                         step="0.01"
                         value={formData.totalAmount}
                         onChange={handleChange}
-                        required
+                        required={!isBulk}
                         disabled={loading}
                       />
                     </div>
                   </div>
                 </>
               ) : (
-                /* Bulk Breakdown Fields */
                 <>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="qtyCft">পরিমাণ (ঘনফুট) *</Label>
+                      <Label htmlFor="qtyCft">Quantity (cft) *</Label>
                       <Input
                         id="qtyCft"
                         name="qtyCft"
@@ -385,12 +496,12 @@ export default function AddMaterialPage({
                         step="0.001"
                         value={formData.qtyCft}
                         onChange={handleChange}
-                        required
+                        required={isBulk}
                         disabled={loading}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="baseRatePerCft">দর (প্রতি ঘনফুট) *</Label>
+                      <Label htmlFor="baseRatePerCft">Base rate (per cft) *</Label>
                       <Input
                         id="baseRatePerCft"
                         name="baseRatePerCft"
@@ -398,16 +509,14 @@ export default function AddMaterialPage({
                         step="0.01"
                         value={formData.baseRatePerCft}
                         onChange={handleChange}
-                        required
+                        required={isBulk}
                         disabled={loading}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="transportVaraCost">
-                      {labels.transportCost}
-                    </Label>
+                    <Label htmlFor="transportVaraCost">{labels.transportCost}</Label>
                     <Input
                       id="transportVaraCost"
                       name="transportVaraCost"
@@ -415,14 +524,14 @@ export default function AddMaterialPage({
                       step="0.01"
                       value={formData.transportVaraCost}
                       onChange={handleChange}
-                      placeholder="পরিবহন খরচ (লাম্পসাম)"
+                      placeholder="Transport cost"
                       disabled={loading}
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="unloadRatePerCft">
-                      খালাস দর (প্রতি ঘনফুট)
+                      Unload rate (per cft)
                     </Label>
                     <Input
                       id="unloadRatePerCft"
@@ -431,25 +540,24 @@ export default function AddMaterialPage({
                       step="0.01"
                       value={formData.unloadRatePerCft}
                       onChange={handleChange}
-                      placeholder="৩-৪ টাকা"
+                      placeholder="Unload rate"
                       disabled={loading}
                     />
                   </div>
 
-                  {/* Breakdown Display */}
                   {formData.baseCost && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-                      <h4 className="font-semibold">ব্রেকডাউন:</h4>
+                      <h4 className="font-semibold">Breakdown</h4>
                       <div className="space-y-1 text-sm">
-                        <p>মূল খরচ: ৳ {formData.baseCost}</p>
+                        <p>Base cost: {formData.baseCost}</p>
                         {formData.transportVaraCost && (
-                          <p>পরিবহন: ৳ {formData.transportVaraCost}</p>
+                          <p>Transport: {formData.transportVaraCost}</p>
                         )}
                         {formData.unloadCost && (
-                          <p>খালাস: ৳ {formData.unloadCost}</p>
+                          <p>Unload: {formData.unloadCost}</p>
                         )}
                         <p className="font-bold pt-2 border-t">
-                          সর্বমোট: ৳ {formData.totalAmount}
+                          Total: {formData.totalAmount}
                         </p>
                       </div>
                     </div>
@@ -457,7 +565,6 @@ export default function AddMaterialPage({
                 </>
               )}
 
-              {/* Supplier */}
               <div>
                 <Label htmlFor="supplier">{labels.supplier}</Label>
                 <Input
@@ -465,12 +572,11 @@ export default function AddMaterialPage({
                   name="supplier"
                   value={formData.supplier}
                   onChange={handleChange}
-                  placeholder="সরবরাহকারীর নাম"
+                  placeholder="Supplier name"
                   disabled={loading}
                 />
               </div>
 
-              {/* Payment Method */}
               <div>
                 <Label htmlFor="paymentMethod">{labels.paymentMethod}</Label>
                 <select
@@ -488,7 +594,40 @@ export default function AddMaterialPage({
                 </select>
               </div>
 
-              {/* Notes */}
+              {formData.paymentMethod === "advance" && (
+                <div>
+                  <Label htmlFor="personKey">Advance person *</Label>
+                  <select
+                    id="personKey"
+                    name="personKey"
+                    value={personKey}
+                    onChange={handlePersonChange}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    required
+                    disabled={loading}
+                  >
+                    <option value="">Select person</option>
+                    {people.map((p) => (
+                      <option key={`${p.type}:${p.id}`} value={`${p.type}:${p.id}`}>
+                        {p.name} ({p.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="paymentRef">Payment reference</Label>
+                <Input
+                  id="paymentRef"
+                  name="paymentRef"
+                  value={formData.paymentRef}
+                  onChange={handleChange}
+                  placeholder="Reference (optional)"
+                  disabled={loading}
+                />
+              </div>
+
               <div>
                 <Label htmlFor="notes">{labels.notes}</Label>
                 <textarea

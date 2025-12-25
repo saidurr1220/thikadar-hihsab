@@ -48,15 +48,20 @@ export default async function TenderSummaryPage({
   // Calculate totals
   const laborTotal =
     labor?.reduce(
-      (sum, l) => sum + (l.khoraki_total || 0) + (l.wage_total || 0),
+      (sum, l) =>
+        sum +
+        Number(l.khoraki_total || 0) +
+        Number(l.wage_total || 0),
       0
     ) || 0;
   const materialsTotal =
-    materials?.reduce((sum, m) => sum + m.total_amount, 0) || 0;
+    materials?.reduce((sum, m) => sum + Number(m.total_amount || 0), 0) || 0;
   const activitiesTotal =
-    activities?.reduce((sum, a) => sum + a.amount, 0) || 0;
-  const advancesTotal = advances?.reduce((sum, a) => sum + a.amount, 0) || 0;
-  const expensesTotal = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0;
+    activities?.reduce((sum, a) => sum + Number(a.amount || 0), 0) || 0;
+  const advancesTotal =
+    advances?.reduce((sum, a) => sum + Number(a.amount || 0), 0) || 0;
+  const expensesTotal =
+    expenses?.reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
 
   const grandTotal = laborTotal + materialsTotal + activitiesTotal;
   const pendingAdvances = advancesTotal - expensesTotal;
@@ -67,8 +72,8 @@ export default async function TenderSummaryPage({
     if (!acc[name]) {
       acc[name] = { name, quantity: 0, unit: m.unit, total: 0 };
     }
-    acc[name].quantity += m.quantity;
-    acc[name].total += m.total_amount;
+    acc[name].quantity += Number(m.quantity || 0);
+    acc[name].total += Number(m.total_amount || 0);
     return acc;
   }, {});
 
@@ -80,7 +85,7 @@ export default async function TenderSummaryPage({
   const activitiesByCategory = activities?.reduce((acc: any, a) => {
     const cat = a.expense_categories?.name_bn || "অন্যান্য";
     if (!acc[cat]) acc[cat] = 0;
-    acc[cat] += a.amount;
+    acc[cat] += Number(a.amount || 0);
     return acc;
   }, {});
 

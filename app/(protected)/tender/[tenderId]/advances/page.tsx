@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
+import EntryActions from "@/components/EntryActions";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdvancesListPage({
   params,
@@ -17,14 +20,16 @@ export default async function AdvancesListPage({
     .select(
       `
       *,
-      users (full_name)
+      profiles:profiles!advances_user_id_fkey (full_name),
+      persons:persons!advances_person_id_fkey (full_name)
     `
     )
     .eq("tender_id", params.tenderId)
     .order("advance_date", { ascending: false })
     .limit(50);
 
-  const total = advances?.reduce((sum, a) => sum + a.amount, 0) || 0;
+  const total =
+    advances?.reduce((sum, a) => sum + Number(a.amount || 0), 0) || 0;
 
   // Get person-wise balances
   const { data: balances } = await supabase.rpc("get_person_balances", {
@@ -144,28 +149,37 @@ export default async function AdvancesListPage({
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg mb-1">
-                          {advance.users?.full_name}
+                          {advance.profiles?.full_name ||
+                            advance.persons?.full_name ||
+                            "Unknown"}
                         </h3>
                         <div className="text-sm text-gray-600 space-y-1">
                           <p>{formatDate(advance.advance_date)}</p>
                           <p>উদ্দেশ্য: {advance.purpose}</p>
                           <p>
                             পদ্ধতি:{" "}
-                            {advance.method === "cash"
+                            {advance.payment_method === "cash"
                               ? labels.cash
-                              : advance.method === "bank"
+                              : advance.payment_method === "bank"
                               ? labels.bank
                               : labels.mfs}
                           </p>
-                          {advance.reference && (
-                            <p>রেফারেন্স: {advance.reference}</p>
+                          {advance.payment_ref && (
+                            <p>রেফারেন্স: {advance.payment_ref}</p>
                           )}
                         </div>
                       </div>
-                      <div className="text-right ml-4">
-                        <p className="text-xl font-bold text-green-600">
-                          {formatCurrency(advance.amount)}
-                        </p>
+                      <div className="flex items-start gap-3 ml-4">
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-green-600">
+                            {formatCurrency(advance.amount)}
+                          </p>
+                        </div>
+                        <EntryActions
+                          entryId={advance.id}
+                          tableName="advances"
+                          editUrl={`/tender/${params.tenderId}/advances/edit/${advance.id}`}
+                        />
                       </div>
                     </div>
                     {advance.notes && (

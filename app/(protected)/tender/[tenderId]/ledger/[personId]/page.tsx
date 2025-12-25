@@ -12,26 +12,32 @@ export default async function PersonLedgerPage({
   const supabase = createClient();
 
   // Get person info
-  const { data: person } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
     .eq("id", params.personId)
-    .single();
+    .maybeSingle();
+
+  const { data: person } = await supabase
+    .from("persons")
+    .select("full_name")
+    .eq("id", params.personId)
+    .maybeSingle();
 
   // Get role from tender assignment
   const { data: assignment } = await supabase
     .from("tender_assignments")
     .select("role")
     .eq("tender_id", params.tenderId)
-    .eq("user_id", params.personId)
-    .single();
+    .or(`user_id.eq.${params.personId},person_id.eq.${params.personId}`)
+    .maybeSingle();
 
   // Get advances
   const { data: advances } = await supabase
     .from("advances")
     .select("*")
     .eq("tender_id", params.tenderId)
-    .eq("person_id", params.personId)
+    .or(`user_id.eq.${params.personId},person_id.eq.${params.personId}`)
     .order("advance_date", { ascending: true });
 
   // Get expenses
@@ -44,8 +50,10 @@ export default async function PersonLedgerPage({
     `
     )
     .eq("tender_id", params.tenderId)
-    .eq("submitted_by", params.personId)
+    .or(`submitted_by.eq.${params.personId},person_id.eq.${params.personId}`)
     .order("expense_date", { ascending: true });
+
+  const personName = profile?.full_name || person?.full_name || "Unknown";
 
   // Combine and sort by date
   const timeline: any[] = [];
@@ -87,11 +95,12 @@ export default async function PersonLedgerPage({
     item.balance = runningBalance;
   });
 
-  const totalAdvances = advances?.reduce((sum, a) => sum + a.amount, 0) || 0;
+  const totalAdvances =
+    advances?.reduce((sum, a) => sum + Number(a.amount || 0), 0) || 0;
   const totalExpenses =
     expenses
       ?.filter((e) => e.status === "approved")
-      .reduce((sum, e) => sum + e.amount, 0) || 0;
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
   const currentBalance = totalAdvances - totalExpenses;
 
   return (
@@ -111,7 +120,7 @@ export default async function PersonLedgerPage({
           <CardContent className="pt-6">
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-2">
-                {person?.full_name || "Unknown"}
+                {personName}
               </h1>
               <p className="text-gray-600 mb-4">{assignment?.role}</p>
               <div

@@ -99,18 +99,5 @@ export default async function AdvancesRegisterPage({
           </Card>
         </div>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 1.5cm;
-          }
-        }
-      `}</style>
-    </div>
   );
 }

@@ -4,11 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
+import EntryActions from "@/components/EntryActions";
+
+export const dynamic = "force-dynamic";
 
 export default async function LaborListPage({
   params,
+  searchParams,
 }: {
   params: { tenderId: string };
+  searchParams?: { tab?: string };
 }) {
   const supabase = createClient();
 
@@ -17,178 +22,219 @@ export default async function LaborListPage({
     .select(
       `
       *,
-      work_types (name_bn)
+      work_types (name_bn),
+      subcontractors (name)
     `
     )
     .eq("tender_id", params.tenderId)
     .order("entry_date", { ascending: false })
     .limit(50);
 
-  const contractEntries =
-    laborEntries?.filter((l) => l.labor_type === "contract") || [];
-  const dailyEntries =
-    laborEntries?.filter((l) => l.labor_type === "daily") || [];
+  const calcBase = (entry: any) =>
+    Number(entry.khoraki_total || 0) + Number(entry.wage_total || 0);
 
-  const contractTotal = contractEntries.reduce(
-    (sum, l) => sum + (l.khoraki_total || 0) + (l.wage_total || 0),
-    0
+  const dailyEntries = (laborEntries || []).filter(
+    (l) => l.labor_type === "daily"
   );
-  const dailyTotal = dailyEntries.reduce(
-    (sum, l) => sum + (l.khoraki_total || 0) + (l.wage_total || 0),
-    0
+  const contractEntries = (laborEntries || []).filter(
+    (l) => l.labor_type === "contract"
   );
-  const grandTotal = contractTotal + dailyTotal;
+
+  const dailyTotal =
+    dailyEntries?.reduce((sum, l) => sum + calcBase(l), 0) || 0;
+  const contractTotal =
+    contractEntries?.reduce((sum, l) => sum + calcBase(l), 0) || 0;
+  const combinedTotal = dailyTotal + contractTotal;
+
+  const activeTab = searchParams?.tab === "contract" ? "contract" : "daily";
+  const activeEntries =
+    activeTab === "contract" ? contractEntries : dailyEntries;
+  const activeTotal = activeTab === "contract" ? contractTotal : dailyTotal;
+
+  const tabClass = (tab: "daily" | "contract") =>
+    [
+      "flex-1 rounded-md border px-3 py-2 text-center text-sm font-medium transition",
+      activeTab === tab
+        ? "border-blue-600 bg-blue-50 text-blue-700"
+        : "border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:text-blue-700",
+    ].join(" ");
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6 flex justify-between items-center">
-          <div>
+      <div className="max-w-7xl mx-auto px-4 space-y-6">
+        <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
             <Link
               href={`/tender/${params.tenderId}`}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
             >
-              ← টেন্ডার ড্যাশবোর্ড
+              <span className="text-base">ƒ+?</span>
+              Back to tender dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mt-2">
-              {labels.laborRegister}
-            </h1>
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+                Site workforce
+              </p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Labor & Subcontractors
+              </h1>
+              <p className="text-sm text-gray-600">
+                Daily labor stays with your expenses; contract crews track khoraki separately.
+              </p>
+            </div>
           </div>
-          <Link href={`/tender/${params.tenderId}/labor/add`}>
-            <Button>+ নতুন এন্ট্রি</Button>
-          </Link>
-        </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/tender/${params.tenderId}/labor/add`}>
+              <Button className="shadow-sm">+ Add labor</Button>
+            </Link>
+            <Link href={`/tender/${params.tenderId}/labor/subcontractors/add`}>
+              <Button variant="outline">+ Add subcontractor</Button>
+            </Link>
+          </div>
+        </header>
 
         {/* Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                মোট
+              <CardTitle className="text-sm font-medium text-gray-700">
+                Daily labor (expense)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(grandTotal)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {labels.contract}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(contractTotal)}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {contractEntries.length} entries
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                {labels.daily}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-3xl font-semibold text-gray-900">
                 {formatCurrency(dailyTotal)}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 {dailyEntries.length} entries
               </p>
             </CardContent>
           </Card>
+          <Card className="bg-white border-slate-200 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-700">
+                Contract labor (khoraki)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold text-gray-900">
+                {formatCurrency(contractTotal)}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                {contractEntries.length} entries
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-white via-slate-50 to-slate-100 border-slate-200 shadow-sm">
+            <CardHeader className="pb-3 flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-gray-700">
+                All labor (for totals)
+              </CardTitle>
+              <Link
+                href={`/tender/${params.tenderId}/labor/subcontractors`}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                View by subcontractor
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl md:text-4xl font-semibold text-gray-900">
+                {formatCurrency(combinedTotal)}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Daily + contract shown separately below
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2">
+          <Link
+            href={`/tender/${params.tenderId}/labor?tab=daily`}
+            className={tabClass("daily")}
+          >
+            Daily labor
+          </Link>
+          <Link
+            href={`/tender/${params.tenderId}/labor?tab=contract`}
+            className={tabClass("contract")}
+          >
+            Contract labor
+          </Link>
         </div>
 
         {/* Entries List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>সাম্প্রতিক এন্ট্রি সমূহ</CardTitle>
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader className="flex flex-col gap-1">
+            <CardTitle>
+              {activeTab === "contract"
+                ? "Contract labor khoraki"
+                : "Daily labor expense"}
+            </CardTitle>
+            <p className="text-sm text-gray-500">
+              {activeEntries.length} entries · {formatCurrency(activeTotal)}
+            </p>
           </CardHeader>
           <CardContent>
-            {!laborEntries || laborEntries.length === 0 ? (
+            {activeEntries.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">কোন এন্ট্রি নেই</p>
-                <Link href={`/tender/${params.tenderId}/labor/add`}>
-                  <Button>প্রথম এন্ট্রি যোগ করুন</Button>
+                <p className="text-gray-500 mb-4">
+                  {activeTab === "contract"
+                    ? "No contract labor entries yet."
+                    : "No daily labor entries yet."}
+                </p>
+                <Link
+                  href={`/tender/${params.tenderId}/labor/add?laborType=${activeTab}`}
+                >
+                  <Button>Add your first entry</Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-4">
-                {laborEntries.map((entry) => (
+              <div className="space-y-3">
+                {activeEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-blue-200 hover:shadow-sm transition"
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span>{formatDate(entry.entry_date)}</span>
                         <span
-                          className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                          className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600"
+                          title={
                             entry.labor_type === "contract"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
+                              ? "Contract labor"
+                              : "Daily labor"
+                          }
                         >
-                          {entry.labor_type === "contract"
-                            ? labels.contract
-                            : labels.daily}
+                          {entry.labor_type === "contract" ? "Contract" : "Daily"}
                         </span>
-                        <h3 className="font-semibold text-lg mt-2">
-                          {entry.crew_name || entry.labor_name || "শ্রমিক"}
-                        </h3>
-                        {entry.work_types && (
-                          <p className="text-sm text-gray-600">
-                            {entry.work_types.name_bn}
-                          </p>
+                        {entry.subcontractors?.name && (
+                          <span>Aú {entry.subcontractors.name}</span>
                         )}
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">
-                          {formatDate(entry.entry_date)}
-                        </p>
-                        <p className="text-xl font-bold text-blue-600 mt-1">
-                          {formatCurrency(
-                            (entry.khoraki_total || 0) + (entry.wage_total || 0)
-                          )}
-                        </p>
+                      <div className="text-sm font-medium text-gray-800">
+                        {entry.crew_name || entry.labor_name || "Unnamed crew"}
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t text-sm">
-                      {entry.headcount && (
-                        <div>
-                          <p className="text-gray-600">{labels.headcount}</p>
-                          <p className="font-medium">{entry.headcount}</p>
-                        </div>
-                      )}
-                      {entry.khoraki_total && (
-                        <div>
-                          <p className="text-gray-600">{labels.khoraki}</p>
-                          <p className="font-medium">
-                            {formatCurrency(entry.khoraki_total)}
-                          </p>
-                        </div>
-                      )}
-                      {entry.wage_total && (
-                        <div>
-                          <p className="text-gray-600">{labels.wage}</p>
-                          <p className="font-medium">
-                            {formatCurrency(entry.wage_total)}
-                          </p>
+                      {entry.work_types?.name_bn && (
+                        <div className="text-xs text-gray-500">
+                          {entry.work_types.name_bn}
                         </div>
                       )}
                     </div>
-
-                    {entry.notes && (
-                      <p className="text-sm text-gray-600 mt-3 pt-3 border-t">
-                        {entry.notes}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-lg font-semibold text-blue-600">
+                          {formatCurrency(calcBase(entry))}
+                        </div>
+                      </div>
+                      <EntryActions
+                        entryId={entry.id}
+                        tableName="labor_entries"
+                        editUrl={`/tender/${params.tenderId}/labor/edit/${entry.id}`}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

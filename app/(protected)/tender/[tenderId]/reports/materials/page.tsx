@@ -24,7 +24,8 @@ export default async function MaterialsRegisterPage({
     .order("purchase_date", { ascending: false })
     .limit(100);
 
-  const total = materials?.reduce((sum, m) => sum + m.total_amount, 0) || 0;
+  const total =
+    materials?.reduce((sum, m) => sum + Number(m.total_amount || 0), 0) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -103,18 +104,5 @@ export default async function MaterialsRegisterPage({
           </Card>
         </div>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          @page {
-            size: A4 landscape;
-            margin: 1.5cm;
-          }
-        }
-      `}</style>
-    </div>
   );
 }

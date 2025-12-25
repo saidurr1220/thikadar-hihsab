@@ -91,7 +91,7 @@ export default function ExpensesListPage({
   const approvedTotal =
     expenses
       .filter((e) => e.status === "approved")
-      .reduce((sum, e) => sum + e.amount, 0) || 0;
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
 
   if (loading) {
     return (

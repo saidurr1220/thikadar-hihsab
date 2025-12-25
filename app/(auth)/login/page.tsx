@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,13 +31,12 @@ export default function LoginPage() {
         });
 
       if (signInError) {
-        setError("ইমেইল বা পাসওয়ার্ড ভুল হয়েছে");
+        setError("Invalid email or password.");
         setLoading(false);
         return;
       }
 
       if (data.user) {
-        // Check if user has profile
         const { data: profile } = await supabase
           .from("profiles")
           .select("role, is_active")
@@ -41,144 +44,102 @@ export default function LoginPage() {
           .single();
 
         if (!profile) {
-          setError("ব্যবহারকারী প্রোফাইল পাওয়া যায়নি");
+          setError("Profile not found. Please contact admin.");
           await supabase.auth.signOut();
           setLoading(false);
           return;
         }
 
         if (!profile.is_active) {
-          setError("আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে");
+          setError("Your account is inactive.");
           await supabase.auth.signOut();
           setLoading(false);
           return;
         }
 
-        // Redirect to dashboard
         router.push("/dashboard");
         router.refresh();
       }
     } catch (err) {
-      setError("লগইন করতে সমস্যা হয়েছে");
+      setError("Login failed. Please try again.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              থিকাদারি হিসাব
-            </h1>
-            <p className="text-gray-600">Construction Contractor Accounting</p>
-          </div>
-
-          {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-6">
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800 text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Email Field */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                ইমেইল / ফোন
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="admin@example.com"
-                disabled={loading}
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                পাসওয়ার্ড
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="••••••••"
-                disabled={loading}
-              />
-            </div>
-
-            {/* Forgot Password Link */}
-            <div className="text-right">
-              <Link
-                href="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                পাসওয়ার্ড ভুলে গেছেন?
-              </Link>
-            </div>
-
-            {/* Login Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {loading ? "লগইন হচ্ছে..." : "লগইন করুন"}
-            </button>
-          </form>
-
-          {/* Signup Link */}
-          <div className="mt-6 text-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-sm">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-2xl font-semibold">
+              Thikadari Hisab
+            </CardTitle>
             <p className="text-sm text-gray-600">
-              নতুন ব্যবহারকারী?{" "}
+              Sign in to continue
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-700 text-sm">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Signing in..." : "Sign in"}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center text-sm text-gray-600">
+              No account?{" "}
               <Link
                 href="/signup"
-                className="text-blue-600 hover:text-blue-800 font-medium"
+                className="text-blue-600 hover:text-blue-800"
               >
-                রেজিস্টার করুন
+                Create one
               </Link>
-            </p>
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 pt-6 border-t">
-            <p className="text-xs text-gray-500 text-center mb-2">ডেমো লগইন:</p>
-            <div className="bg-gray-50 rounded p-3 text-xs text-gray-600">
-              <p>
-                <strong>Email:</strong> admin@example.com
-              </p>
-              <p>
-                <strong>Password:</strong> Admin@123
-              </p>
             </div>
-            <p className="text-xs text-gray-500 text-center mt-2">
-              (প্রথমে Supabase এ user তৈরি করুন)
-            </p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link href="/" className="text-blue-600 hover:text-blue-800 text-sm">
-            ← হোম পেজে ফিরে যান
+          <Link href="/" className="text-sm text-blue-600 hover:text-blue-800">
+            Back to home
           </Link>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency } from "@/lib/utils/format";
+import MFSChargeCalculator from "@/components/MFSChargeCalculator";
 
 export default function GiveAdvancePage({
   params,
@@ -24,10 +25,14 @@ export default function GiveAdvancePage({
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [newPersonName, setNewPersonName] = useState("");
   const [newPersonRole, setNewPersonRole] = useState("site_manager");
+  const [mfsCharge, setMfsCharge] = useState(0);
+  const [totalWithCharge, setTotalWithCharge] = useState(0);
+  const [personKey, setPersonKey] = useState("");
 
   const [formData, setFormData] = useState({
     advanceDate: new Date().toISOString().split("T")[0],
     personId: "",
+    personType: "",
     amount: "",
     method: "cash",
     reference: "",
@@ -78,6 +83,7 @@ export default function GiveAdvancePage({
             id: ta.profiles.id,
             name: ta.profiles.full_name,
             role: ta.role,
+            type: "user",
           });
         }
       });
@@ -91,6 +97,7 @@ export default function GiveAdvancePage({
             id: ta.persons.id,
             name: ta.persons.full_name,
             role: ta.role,
+            type: "person",
           });
         }
       });
@@ -141,7 +148,12 @@ export default function GiveAdvancePage({
       await loadUsers();
       setShowAddPerson(false);
       setNewPersonName("");
-      setFormData((prev) => ({ ...prev, personId: newPerson.id }));
+      setPersonKey(`person:${newPerson.id}`);
+      setFormData((prev) => ({
+        ...prev,
+        personId: newPerson.id,
+        personType: "person",
+      }));
       setError("");
     } catch (err: any) {
       setError(err.message || "ব্যক্তি যোগ করতে সমস্যা হয়েছে");
@@ -170,10 +182,21 @@ export default function GiveAdvancePage({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-    if (name === "personId" && value) {
-      loadPersonBalance(value);
+  const handlePersonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setPersonKey(value);
+
+    if (!value) {
+      setFormData((prev) => ({ ...prev, personId: "", personType: "" }));
+      setCurrentBalance(null);
+      return;
     }
+
+    const [personType, personId] = value.split(":");
+    setFormData((prev) => ({ ...prev, personId, personType }));
+    loadPersonBalance(personId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -193,16 +216,18 @@ export default function GiveAdvancePage({
         return;
       }
 
+      const isAuthUser = formData.personType === "user";
       const { error: insertError } = await supabase.from("advances").insert({
         tender_id: params.tenderId,
         advance_date: formData.advanceDate,
-        person_id: formData.personId,
+        user_id: isAuthUser ? formData.personId : null,
+        person_id: !isAuthUser ? formData.personId : null,
         amount: parseFloat(formData.amount),
-        method: formData.method as any,
-        reference: formData.reference || null,
+        payment_method: formData.method as any,
+        payment_ref: formData.reference || null,
         purpose: formData.purpose,
         notes: formData.notes || null,
-        created_by: user.id,
+        given_by: user.id,
       });
 
       if (insertError) {
@@ -257,7 +282,7 @@ export default function GiveAdvancePage({
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <Label htmlFor="personId">{labels.person} *</Label>
+                  <Label htmlFor="personKey">{labels.person} *</Label>
                   <button
                     type="button"
                     onClick={() => setShowAddPerson(!showAddPerson)}
@@ -323,17 +348,17 @@ export default function GiveAdvancePage({
                 )}
 
                 <select
-                  id="personId"
-                  name="personId"
-                  value={formData.personId}
-                  onChange={handleChange}
+                  id="personKey"
+                  name="personKey"
+                  value={personKey}
+                  onChange={handlePersonChange}
                   className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
                   required
                   disabled={loading}
                 >
                   <option value="">নির্বাচন করুন</option>
                   {users.map((u) => (
-                    <option key={u.id} value={u.id}>
+                    <option key={`${u.type}:${u.id}`} value={`${u.type}:${u.id}`}>
                       {u.name} ({u.role})
                     </option>
                   ))}

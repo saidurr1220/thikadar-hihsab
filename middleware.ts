@@ -57,6 +57,15 @@ export async function middleware(request: NextRequest) {
     const {
         data: { user },
     } = await supabase.auth.getUser();
+    let hasProfile = false;
+    if (user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, is_active')
+            .eq('id', user.id)
+            .maybeSingle();
+        hasProfile = !!profile?.id && profile?.is_active !== false;
+    }
 
     // Protected routes - require authentication
     const protectedPaths = ['/dashboard', '/tender', '/admin', '/settings'];
@@ -64,7 +73,7 @@ export async function middleware(request: NextRequest) {
         request.nextUrl.pathname.startsWith(path)
     );
 
-    if (isProtectedPath && !user) {
+    if (isProtectedPath && (!user || !hasProfile)) {
         const redirectUrl = new URL('/login', request.url);
         redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
         return NextResponse.redirect(redirectUrl);
@@ -76,7 +85,7 @@ export async function middleware(request: NextRequest) {
         request.nextUrl.pathname.startsWith(path)
     );
 
-    if (isAuthPath && user) {
+    if (isAuthPath && user && hasProfile) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 

@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils/format";
 import { labels } from "@/lib/utils/bangla";
+
+type LaborType = "contract" | "daily";
 
 export default function AddLaborPage({
   params,
@@ -16,10 +19,16 @@ export default function AddLaborPage({
   params: { tenderId: string };
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [laborType, setLaborType] = useState<"contract" | "daily">("contract");
+  const [laborType, setLaborType] = useState<LaborType>("contract");
   const [workTypes, setWorkTypes] = useState<any[]>([]);
+  const [subcontractors, setSubcontractors] = useState<any[]>([]);
+  const [showNewSubForm, setShowNewSubForm] = useState(false);
+  const [newSubName, setNewSubName] = useState("");
+  const [newSubPhone, setNewSubPhone] = useState("");
+  const [newSubNotes, setNewSubNotes] = useState("");
 
   const [formData, setFormData] = useState({
     entryDate: new Date().toISOString().split("T")[0],
@@ -32,10 +41,22 @@ export default function AddLaborPage({
     khorakiTotal: "",
     wageTotal: "",
     notes: "",
+    subcontractorId: "",
+    paymentMethod: "cash",
+    paymentRef: "",
   });
 
   useEffect(() => {
     loadWorkTypes();
+    loadSubcontractors();
+    const presetSub = searchParams.get("subcontractorId");
+    const presetType = searchParams.get("laborType");
+    if (presetSub) {
+      setFormData((prev) => ({ ...prev, subcontractorId: presetSub }));
+    }
+    if (presetType === "daily" || presetType === "contract") {
+      setLaborType(presetType);
+    }
   }, []);
 
   const loadWorkTypes = async () => {
@@ -45,8 +66,18 @@ export default function AddLaborPage({
       .select("*")
       .eq("is_active", true)
       .order("name_bn");
-
     if (data) setWorkTypes(data);
+  };
+
+  const loadSubcontractors = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("subcontractors")
+      .select("*")
+      .eq("tender_id", params.tenderId)
+      .eq("is_active", true)
+      .order("name");
+    if (data) setSubcontractors(data);
   };
 
   const handleChange = (
@@ -57,7 +88,6 @@ export default function AddLaborPage({
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Auto-calculate khoraki total
     if (name === "headcount" || name === "khorakiRatePerHead") {
       const headcount =
         name === "headcount"
@@ -67,45 +97,66 @@ export default function AddLaborPage({
         name === "khorakiRatePerHead"
           ? parseFloat(value)
           : parseFloat(formData.khorakiRatePerHead);
-
       if (headcount && rate) {
         setFormData((prev) => ({
           ...prev,
           [name]: value,
           khorakiTotal: (headcount * rate).toString(),
         }));
-      } else {
-        setFormData((prev) => ({ ...prev, [name]: value }));
       }
     }
+  };
+
+  const baseTotal =
+    (parseFloat(formData.khorakiTotal) || 0) +
+    (parseFloat(formData.wageTotal) || 0);
+  const fee =
+    formData.paymentMethod === "mfs" ? baseTotal * 0.0185 + 10 : 0;
+
+  const handleCreateSubcontractor = async () => {
+    if (!newSubName.trim()) {
+      setError("Subcontractor name is required.");
+      return;
+    }
+    const supabase = createClient();
+    const { error: subError } = await supabase.from("subcontractors").insert({
+      tender_id: params.tenderId,
+      name: newSubName.trim(),
+      phone: newSubPhone || null,
+      notes: newSubNotes || null,
+    });
+    if (subError) {
+      setError(subError.message);
+      return;
+    }
+    setNewSubName("");
+    setNewSubPhone("");
+    setNewSubNotes("");
+    setShowNewSubForm(false);
+    loadSubcontractors();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
       if (!user) {
-        setError("আপনি লগইন করা নেই");
+        setError("Not authenticated.");
         setLoading(false);
         return;
       }
-
-      // Validation
       if (laborType === "contract" && !formData.crewName) {
-        setError("দলের নাম আবশ্যক");
+        setError("Crew name is required for contract labor.");
         setLoading(false);
         return;
       }
-
       if (!formData.khorakiTotal && !formData.wageTotal) {
-        setError("খোরাকি বা মজুরি অন্তত একটি প্রয়োজন");
+        setError("Enter khoraki or wage amount.");
         setLoading(false);
         return;
       }
@@ -131,6 +182,9 @@ export default function AddLaborPage({
             ? parseFloat(formData.wageTotal)
             : null,
           notes: formData.notes || null,
+          subcontractor_id: formData.subcontractorId || null,
+          payment_method: formData.paymentMethod || null,
+          payment_ref: formData.paymentRef || null,
           created_by: user.id,
         });
 
@@ -142,7 +196,7 @@ export default function AddLaborPage({
 
       router.push(`/tender/${params.tenderId}/labor`);
     } catch (err) {
-      setError("এন্ট্রি যোগ করতে সমস্যা হয়েছে");
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
@@ -155,13 +209,13 @@ export default function AddLaborPage({
             href={`/tender/${params.tenderId}`}
             className="text-blue-600 hover:text-blue-800"
           >
-            ← টেন্ডার ড্যাশবোর্ড
+            Back to tender dashboard
           </Link>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>শ্রমিক এন্ট্রি যোগ করুন</CardTitle>
+            <CardTitle>Add labor entry</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -213,19 +267,17 @@ export default function AddLaborPage({
 
               {/* Contract Fields */}
               {laborType === "contract" && (
-                <>
-                  <div>
-                    <Label htmlFor="crewName">{labels.crewName} *</Label>
-                    <Input
-                      id="crewName"
-                      name="crewName"
-                      value={formData.crewName}
-                      onChange={handleChange}
-                      placeholder="করিম দল"
-                      disabled={loading}
-                    />
-                  </div>
-                </>
+                <div>
+                  <Label htmlFor="crewName">{labels.crewName} *</Label>
+                  <Input
+                    id="crewName"
+                    name="crewName"
+                    value={formData.crewName}
+                    onChange={handleChange}
+                    placeholder="Crew / team name"
+                    disabled={loading}
+                  />
+                </div>
               )}
 
               {/* Daily Fields */}
@@ -237,7 +289,7 @@ export default function AddLaborPage({
                     name="laborName"
                     value={formData.laborName}
                     onChange={handleChange}
-                    placeholder="শ্রমিকের নাম (ঐচ্ছিক)"
+                    placeholder="Worker name (optional)"
                     disabled={loading}
                   />
                 </div>
@@ -254,7 +306,7 @@ export default function AddLaborPage({
                   className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
                   disabled={loading}
                 >
-                  <option value="">নির্বাচন করুন</option>
+                  <option value="">Select work type</option>
                   {workTypes.map((wt) => (
                     <option key={wt.id} value={wt.id}>
                       {wt.name_bn}
@@ -272,7 +324,7 @@ export default function AddLaborPage({
                   type="number"
                   value={formData.headcount}
                   onChange={handleChange}
-                  placeholder="১২"
+                  placeholder="Headcount"
                   disabled={loading}
                 />
               </div>
@@ -290,7 +342,7 @@ export default function AddLaborPage({
                     step="0.01"
                     value={formData.khorakiRatePerHead}
                     onChange={handleChange}
-                    placeholder="৩০০"
+                    placeholder="Rate per head"
                     disabled={loading}
                   />
                 </div>
@@ -303,7 +355,7 @@ export default function AddLaborPage({
                     step="0.01"
                     value={formData.khorakiTotal}
                     onChange={handleChange}
-                    placeholder="৩৬০০"
+                    placeholder="Total khoraki"
                     disabled={loading}
                   />
                 </div>
@@ -319,9 +371,110 @@ export default function AddLaborPage({
                   step="0.01"
                   value={formData.wageTotal}
                   onChange={handleChange}
-                  placeholder="৪০০০"
+                  placeholder="Wage total"
                   disabled={loading}
                 />
+              </div>
+
+              {/* Subcontractor */}
+              <div className="space-y-2">
+                <Label htmlFor="subcontractorId">Subcontractor / Team</Label>
+                <div className="flex gap-2">
+                  <select
+                    id="subcontractorId"
+                    name="subcontractorId"
+                    value={formData.subcontractorId}
+                    onChange={handleChange}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    disabled={loading}
+                  >
+                    <option value="">Select subcontractor</option>
+                    {subcontractors.map((sc) => (
+                      <option key={sc.id} value={sc.id}>
+                        {sc.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowNewSubForm((p) => !p)}
+                    disabled={loading}
+                  >
+                    + New
+                  </Button>
+                </div>
+                {showNewSubForm && (
+                  <div className="space-y-2 rounded-md border border-gray-200 p-3 bg-white">
+                    <Input
+                      placeholder="Name"
+                      value={newSubName}
+                      onChange={(e) => setNewSubName(e.target.value)}
+                      disabled={loading}
+                    />
+                    <Input
+                      placeholder="Phone (optional)"
+                      value={newSubPhone}
+                      onChange={(e) => setNewSubPhone(e.target.value)}
+                      disabled={loading}
+                    />
+                    <textarea
+                      placeholder="Notes (optional)"
+                      value={newSubNotes}
+                      onChange={(e) => setNewSubNotes(e.target.value)}
+                      rows={2}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                      disabled={loading}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        onClick={handleCreateSubcontractor}
+                        disabled={loading}
+                      >
+                        Save subcontractor
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setShowNewSubForm(false)}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="paymentMethod">Payment method</Label>
+                  <select
+                    id="paymentMethod"
+                    name="paymentMethod"
+                    value={formData.paymentMethod}
+                    onChange={handleChange}
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    disabled={loading}
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="bank">Bank</option>
+                    <option value="mfs">bKash / MFS</option>
+                    <option value="advance">Advance</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="paymentRef">Payment ref (optional)</Label>
+                  <Input
+                    id="paymentRef"
+                    name="paymentRef"
+                    value={formData.paymentRef}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+                </div>
               </div>
 
               {/* Notes */}
@@ -334,7 +487,7 @@ export default function AddLaborPage({
                   onChange={handleChange}
                   rows={3}
                   className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-                  placeholder="অতিরিক্ত তথ্য..."
+                  placeholder="Notes"
                   disabled={loading}
                 />
               </div>
@@ -342,13 +495,17 @@ export default function AddLaborPage({
               {/* Total Display */}
               {(formData.khorakiTotal || formData.wageTotal) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="font-semibold">
-                    মোট: ৳{" "}
-                    {(
-                      (parseFloat(formData.khorakiTotal) || 0) +
-                      (parseFloat(formData.wageTotal) || 0)
-                    ).toFixed(2)}
-                  </p>
+                  <div className="font-semibold text-slate-800">
+                    Base: {formatCurrency(baseTotal || 0)}
+                  </div>
+                  {fee > 0 && (
+                    <div className="text-sm text-slate-700 mt-1">
+                      bKash fee (1.85% + 10): {formatCurrency(fee)}
+                    </div>
+                  )}
+                  <div className="text-sm text-slate-900 mt-1">
+                    Your project cost: {formatCurrency(baseTotal + fee)}
+                  </div>
                 </div>
               )}
 

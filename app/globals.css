@@ -105,6 +105,20 @@
   }
 }
 
+/* Print Landscape for specific reports */
+@media print {
+  .print-landscape {
+    size: A4 landscape;
+  }
+}
+
+/* Print Portrait for specific reports */
+@media print {
+  .print-portrait {
+    size: A4 portrait;
+  }
+}
+
 /* Bangla Font */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 
