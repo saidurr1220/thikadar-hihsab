@@ -27,7 +27,7 @@ export default async function SubcontractorLaborPage({
       subcontractor_id,
       khoraki_total,
       wage_total,
-      subcontractors (name)
+      subcontractors!left (name)
     `
     )
     .eq("tender_id", params.tenderId);
@@ -36,7 +36,7 @@ export default async function SubcontractorLaborPage({
 
   entries?.forEach((e) => {
     const key = e.subcontractor_id || "none";
-    const name = e.subcontractors?.name || "Unassigned";
+    const name = (e.subcontractors as any)?.name || "Unassigned";
     const base =
       Number(e.khoraki_total || 0) + Number(e.wage_total || 0);
     if (!summaries.has(key)) {
