@@ -195,7 +195,7 @@ export default function DailySheetPage({
             {/* Report Header */}
             <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
               <h1 className="text-2xl font-bold mb-2">
-                à¦¥à¦¿à¦•à¦¾à¦¦à¦¾à¦°à¦¿ à¦¹à¦¿à¦¸à¦¾à¦¬
+                ঠিকাদারি হিসাব
               </h1>
               <h2 className="text-xl font-semibold mb-4">
                 {labels.dailySheet}
@@ -215,7 +215,7 @@ export default function DailySheetPage({
                   </p>
                 )}
                 <p>
-                  <strong>à¦¤à¦¾à¦°à¦¿à¦–:</strong> {formatDate(date)}
+                  <strong>তারিখ:</strong> {formatDate(date)}
                 </p>
               </div>
             </div>
@@ -234,12 +234,12 @@ export default function DailySheetPage({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-2">à¦§à¦°à¦¨</th>
-                        <th className="text-left py-2">à¦¬à¦¿à¦¬à¦°à¦£</th>
-                        <th className="text-right py-2">à¦²à§‹à¦•</th>
-                        <th className="text-right py-2">à¦–à§‹à¦°à¦¾à¦•à¦¿</th>
+                        <th className="text-left py-2">ধরন</th>
+                        <th className="text-left py-2">বিবরণ</th>
+                        <th className="text-right py-2">লোক</th>
+                        <th className="text-right py-2">খোরাকি</th>
                         <th className="text-right py-2">à¦®à¦œà§à¦°à¦¿</th>
-                        <th className="text-right py-2">à¦®à§‹à¦Ÿ</th>
+                        <th className="text-right py-2">মোট</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -248,7 +248,7 @@ export default function DailySheetPage({
                           <td className="py-2">
                             {l.labor_type === "contract"
                               ? "à¦šà§à¦•à§à¦¤à¦¿"
-                              : "à¦¦à§ˆà¦¨à¦¿à¦•"}
+                              : "দৈনিক"}
                           </td>
                           <td className="py-2">
                             {l.crew_name || l.labor_name || "-"}
@@ -274,7 +274,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={5} className="text-right py-2">
-                          à¦‰à¦ªà¦®à§‹à¦Ÿ:
+                          à¦‰à¦ªমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(laborTotal)}
@@ -289,7 +289,7 @@ export default function DailySheetPage({
             {/* Materials Section */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>à¦®à¦¾à¦²à¦¾à¦®à¦¾à¦² à¦•à§à¦°à¦¯à¦¼</CardTitle>
+                <CardTitle>মালামাল à¦•à§à¦°à¦¯à¦¼</CardTitle>
               </CardHeader>
               <CardContent>
                 {data.materials.length === 0 ? (
@@ -301,13 +301,13 @@ export default function DailySheetPage({
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-2">
-                          à¦®à¦¾à¦²à¦¾à¦®à¦¾à¦²
+                          মালামাল
                         </th>
-                        <th className="text-right py-2">à¦ªà¦°à¦¿à¦®à¦¾à¦£</th>
-                        <th className="text-right py-2">à¦¦à¦°</th>
-                        <th className="text-right py-2">à¦®à§‹à¦Ÿ</th>
+                        <th className="text-right py-2">পরিমাণ</th>
+                        <th className="text-right py-2">দর</th>
+                        <th className="text-right py-2">মোট</th>
                         <th className="text-left py-2">
-                          à¦¸à¦°à¦¬à¦°à¦¾à¦¹à¦•à¦¾à¦°à§€
+                          সরবরাহকারী
                         </th>
                       </tr>
                     </thead>
@@ -332,7 +332,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={3} className="text-right py-2">
-                          à¦‰à¦ªà¦®à§‹à¦Ÿ:
+                          à¦‰à¦ªমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(materialsTotal)}
@@ -348,7 +348,7 @@ export default function DailySheetPage({
             {/* Activities Section */}
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>à¦•à¦¾à¦œà§‡à¦° à¦–à¦°à¦š</CardTitle>
+                <CardTitle>কাজের খরচ</CardTitle>
               </CardHeader>
               <CardContent>
                 {data.activities.length === 0 ? (
@@ -359,9 +359,9 @@ export default function DailySheetPage({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-2">à¦¬à¦¿à¦­à¦¾à¦—</th>
-                        <th className="text-left py-2">à¦¬à¦¿à¦¬à¦°à¦£</th>
-                        <th className="text-right py-2">à¦ªà¦°à¦¿à¦®à¦¾à¦£</th>
+                        <th className="text-left py-2">বিভাগ</th>
+                        <th className="text-left py-2">বিবরণ</th>
+                        <th className="text-right py-2">পরিমাণ</th>
                         <th className="text-left py-2">
                           à¦¬à¦¿à¦•à§à¦°à§‡à¦¤à¦¾
                         </th>
@@ -382,7 +382,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={2} className="text-right py-2">
-                          à¦‰à¦ªà¦®à§‹à¦Ÿ:
+                          à¦‰à¦ªমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(activitiesTotal)}
@@ -409,7 +409,7 @@ export default function DailySheetPage({
                         <th className="text-left py-2">
                           à¦‰à¦¦à§à¦¦à§‡à¦¶à§à¦¯
                         </th>
-                        <th className="text-right py-2">à¦ªà¦°à¦¿à¦®à¦¾à¦£</th>
+                        <th className="text-right py-2">পরিমাণ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -424,7 +424,7 @@ export default function DailySheetPage({
                       ))}
                       <tr className="font-bold">
                         <td colSpan={2} className="text-right py-2">
-                          à¦‰à¦ªà¦®à§‹à¦Ÿ:
+                          à¦‰à¦ªমোট:
                         </td>
                         <td className="text-right py-2">
                           {formatCurrency(advancesTotal)}
@@ -452,13 +452,13 @@ export default function DailySheetPage({
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
-                    <span>à¦®à¦¾à¦²à¦¾à¦®à¦¾à¦²:</span>
+                    <span>মালামাল:</span>
                     <span className="font-semibold">
                       {formatCurrency(materialsTotal)}
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
-                    <span>à¦•à¦¾à¦œà§‡à¦° à¦–à¦°à¦š:</span>
+                    <span>কাজের খরচ:</span>
                     <span className="font-semibold">
                       {formatCurrency(activitiesTotal)}
                     </span>
@@ -472,7 +472,7 @@ export default function DailySheetPage({
                     </div>
                   )}
                   <div className="flex justify-between py-3 text-lg font-bold border-t-2">
-                    <span>à¦®à§‹à¦Ÿ:</span>
+                    <span>মোট:</span>
                     <span>{formatCurrency(grandTotal)}</span>
                   </div>
                 </div>
