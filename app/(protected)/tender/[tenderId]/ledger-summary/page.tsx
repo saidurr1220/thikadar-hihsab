@@ -47,7 +47,7 @@ export default async function LedgerSummaryPage({
 
   const { data: activities } = await supabase
     .from("activity_expenses")
-    .select("amount, expense_date, expense_categories(name_bn)")
+    .select("amount, expense_date, expense_categories!left(name_bn)")
     .eq("tender_id", params.tenderId)
     .gte("expense_date", fromDate)
     .lte("expense_date", toDate);
@@ -82,7 +82,7 @@ export default async function LedgerSummaryPage({
 
   // Group activities by category
   const activitiesByCategory = activities?.reduce((acc: any, a) => {
-    const cat = a.expense_categories?.name_bn || "à¦…à¦¨à§à¦¯à¦¾à¦¨à§à¦¯";
+    const cat = (a.expense_categories as any)?.name_bn || "অন্যান্য";
     if (!acc[cat]) {
       acc[cat] = { total: 0, count: 0 };
     }
