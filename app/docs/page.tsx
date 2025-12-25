@@ -133,7 +133,7 @@ export default function DocsPage() {
             📚 Documentation
           </h1>
           <p className="text-gray-600">
-            Complete specification and implementation guide for থিকাদারি হিসাব
+            Complete specification and implementation guide for ঠিকাদারি হিসাব
           </p>
         </div>
 

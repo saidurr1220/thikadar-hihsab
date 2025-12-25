@@ -154,7 +154,7 @@ export default function TenderSummaryPage({
         <div className="print-content">
           {/* Header */}
           <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
-            <h1 className="text-2xl font-bold mb-2">থিকাদারি হিসাব</h1>
+            <h1 className="text-2xl font-bold mb-2">ঠিকাদারি হিসাব</h1>
             <h2 className="text-xl font-semibold mb-4">
               {labels.tenderSummary}
             </h2>

@@ -42,7 +42,7 @@ export default async function ActivitiesRegisterPage({
         <div className="print-content">
           <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
             <h1 className="text-2xl font-bold mb-2">
-              à¦¥à¦¿à¦•à¦¾à¦¦à¦¾à¦°à¦¿ à¦¹à¦¿à¦¸à¦¾à¦¬
+              ঠিকাদারি হিসাব
             </h1>
             <h2 className="text-xl font-semibold mb-4">
               {labels.activityRegister}

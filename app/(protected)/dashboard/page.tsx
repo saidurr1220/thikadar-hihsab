@@ -101,11 +101,11 @@ export default async function DashboardPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                থ
+                ঠ
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">
-                  থিকাদারি হিসাব
+                  ঠিকাদারি হিসাব
                 </h1>
                 <p className="text-xs text-gray-600">{profile.full_name}</p>
               </div>

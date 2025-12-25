@@ -10,7 +10,7 @@ const notoSansBengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
-  title: "থিকাদারি হিসাব - Construction Contractor Accounting",
+  title: "ঠিকাদারি হিসাব - Construction Contractor Accounting",
   description:
     "Complete accounting system for Bangladeshi construction contractors",
   manifest: "/manifest.json",
