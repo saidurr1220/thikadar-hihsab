@@ -223,7 +223,6 @@ export default function GiveAdvancePage({
         user_id: isAuthUser ? formData.personId : null,
         person_id: !isAuthUser ? formData.personId : null,
         amount: parseFloat(formData.amount),
-        payment_method: formData.method as any,
         payment_ref: formData.reference || null,
         purpose: formData.purpose,
         notes: formData.notes || null,

@@ -20,8 +20,7 @@ export default async function AdvancesListPage({
     .select(
       `
       *,
-      profiles:profiles!advances_user_id_fkey (full_name),
-      persons:persons!advances_person_id_fkey (full_name)
+      person:profiles!advances_person_id_fkey (full_name)
     `
     )
     .eq("tender_id", params.tenderId)
@@ -149,9 +148,7 @@ export default async function AdvancesListPage({
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg mb-1">
-                          {advance.profiles?.full_name ||
-                            advance.persons?.full_name ||
-                            "Unknown"}
+                          {advance.person?.full_name || "Unknown"}
                         </h3>
                         <div className="text-sm text-gray-600 space-y-1">
                           <p>{formatDate(advance.advance_date)}</p>

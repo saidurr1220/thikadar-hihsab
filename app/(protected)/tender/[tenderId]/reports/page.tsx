@@ -1,13 +1,32 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { labels } from "@/lib/utils/bangla";
+import { createClient } from "@/lib/supabase/client";
+import { exportAllReports } from "@/lib/utils/excel";
+import { FileSpreadsheet, Download } from "lucide-react";
 
 export default function ReportsMenuPage({
   params,
 }: {
   params: { tenderId: string };
 }) {
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportAll = async () => {
+    setExporting(true);
+    try {
+      const supabase = createClient();
+      await exportAllReports(params.tenderId, supabase);
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      setExporting(false);
+    }
+  };
   const reports = [
     {
       id: "daily",
@@ -54,15 +73,26 @@ export default function ReportsMenuPage({
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <Link
             href={`/tender/${params.tenderId}`}
-            className="text-blue-600 hover:text-blue-800 text-sm"
+            className="text-blue-600 hover:text-blue-800 font-medium"
           >
             ← টেন্ডার ড্যাশবোর্ড
           </Link>
+          <Button
+            onClick={handleExportAll}
+            disabled={exporting}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg gap-2"
+          >
+            <Download className="w-4 h-4" />
+            {exporting ? "Export হচ্ছে..." : "সম্পূর্ণ রিপোর্ট Export করুন"}
+          </Button>
+        </div>
+
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mt-2">
             {labels.reports}
           </h1>

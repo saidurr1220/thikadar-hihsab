@@ -9,6 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
+import { exportDailyReport } from "@/lib/utils/excel";
+import {
+  FileSpreadsheet,
+  Printer,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export default function DailySheetPage({
   params,
@@ -81,9 +88,7 @@ export default function DailySheetPage({
   const laborTotal =
     data.labor.reduce(
       (sum: number, l: any) =>
-        sum +
-        Number(l.khoraki_total || 0) +
-        Number(l.wage_total || 0),
+        sum + Number(l.khoraki_total || 0) + Number(l.wage_total || 0),
       0
     ) || 0;
   const materialsTotal =
@@ -108,6 +113,10 @@ export default function DailySheetPage({
     window.print();
   };
 
+  const handleExport = () => {
+    exportDailyReport(data, tender, date);
+  };
+
   const changeDate = (days: number) => {
     const newDate = new Date(date);
     newDate.setDate(newDate.getDate() + days);
@@ -115,7 +124,7 @@ export default function DailySheetPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6 no-print">
           <Link
@@ -127,21 +136,52 @@ export default function DailySheetPage({
         </div>
 
         {/* Controls */}
-        <Card className="mb-6 no-print">
+        <Card className="mb-6 no-print shadow-lg border-t-4 border-t-blue-500">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <Button onClick={() => changeDate(-1)}>â† à¦†à¦—à§‡à¦° à¦¦à¦¿à¦¨</Button>
-              <div className="flex-1">
-                <Label htmlFor="date">à¦¤à¦¾à¦°à¦¿à¦– à¦¨à¦¿à¦°à§à¦¬à¦¾à¦šà¦¨ à¦•à¦°à§à¦¨</Label>
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="flex-1 min-w-[200px]">
+                <Label
+                  htmlFor="date"
+                  className="text-sm font-semibold text-gray-700"
+                >
+                  তারিখ নির্বাচন করুন
+                </Label>
                 <Input
                   id="date"
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
+                  className="mt-1"
                 />
               </div>
-              <Button onClick={() => changeDate(1)}>à¦ªà¦°à§‡à¦° à¦¦à¦¿à¦¨ â†’</Button>
-              <Button onClick={handlePrint} className="bg-green-600">
+              <Button
+                onClick={() => changeDate(-1)}
+                variant="outline"
+                className="gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                আগের দিন
+              </Button>
+              <Button
+                onClick={() => changeDate(1)}
+                variant="outline"
+                className="gap-2"
+              >
+                পরের দিন
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <Button
+                onClick={handleExport}
+                className="bg-green-600 hover:bg-green-700 gap-2"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Excel Export
+              </Button>
+              <Button
+                onClick={handlePrint}
+                className="bg-blue-600 hover:bg-blue-700 gap-2"
+              >
+                <Printer className="w-4 h-4" />
                 {labels.print}
               </Button>
             </div>
@@ -154,16 +194,20 @@ export default function DailySheetPage({
           <div className="print-content">
             {/* Report Header */}
             <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
-              <h1 className="text-2xl font-bold mb-2">à¦¥à¦¿à¦•à¦¾à¦¦à¦¾à¦°à¦¿ à¦¹à¦¿à¦¸à¦¾à¦¬</h1>
+              <h1 className="text-2xl font-bold mb-2">
+                à¦¥à¦¿à¦•à¦¾à¦¦à¦¾à¦°à¦¿ à¦¹à¦¿à¦¸à¦¾à¦¬
+              </h1>
               <h2 className="text-xl font-semibold mb-4">
                 {labels.dailySheet}
               </h2>
               <div className="text-sm space-y-1">
                 <p>
-                  <strong>à¦Ÿà§‡à¦¨à§à¦¡à¦¾à¦° à¦•à§‹à¦¡:</strong> {tender?.tender_code}
+                  <strong>à¦Ÿà§‡à¦¨à§à¦¡à¦¾à¦° à¦•à§‹à¦¡:</strong>{" "}
+                  {tender?.tender_code}
                 </p>
                 <p>
-                  <strong>à¦ªà§à¦°à¦•à¦²à§à¦ªà§‡à¦° à¦¨à¦¾à¦®:</strong> {tender?.project_name}
+                  <strong>à¦ªà§à¦°à¦•à¦²à§à¦ªà§‡à¦° à¦¨à¦¾à¦®:</strong>{" "}
+                  {tender?.project_name}
                 </p>
                 {tender?.location && (
                   <p>
@@ -202,7 +246,9 @@ export default function DailySheetPage({
                       {data.labor.map((l: any) => (
                         <tr key={l.id} className="border-b">
                           <td className="py-2">
-                            {l.labor_type === "contract" ? "à¦šà§à¦•à§à¦¤à¦¿" : "à¦¦à§ˆà¦¨à¦¿à¦•"}
+                            {l.labor_type === "contract"
+                              ? "à¦šà§à¦•à§à¦¤à¦¿"
+                              : "à¦¦à§ˆà¦¨à¦¿à¦•"}
                           </td>
                           <td className="py-2">
                             {l.crew_name || l.labor_name || "-"}
@@ -254,11 +300,15 @@ export default function DailySheetPage({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-2">à¦®à¦¾à¦²à¦¾à¦®à¦¾à¦²</th>
+                        <th className="text-left py-2">
+                          à¦®à¦¾à¦²à¦¾à¦®à¦¾à¦²
+                        </th>
                         <th className="text-right py-2">à¦ªà¦°à¦¿à¦®à¦¾à¦£</th>
                         <th className="text-right py-2">à¦¦à¦°</th>
                         <th className="text-right py-2">à¦®à§‹à¦Ÿ</th>
-                        <th className="text-left py-2">à¦¸à¦°à¦¬à¦°à¦¾à¦¹à¦•à¦¾à¦°à§€</th>
+                        <th className="text-left py-2">
+                          à¦¸à¦°à¦¬à¦°à¦¾à¦¹à¦•à¦¾à¦°à§€
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -312,7 +362,9 @@ export default function DailySheetPage({
                         <th className="text-left py-2">à¦¬à¦¿à¦­à¦¾à¦—</th>
                         <th className="text-left py-2">à¦¬à¦¿à¦¬à¦°à¦£</th>
                         <th className="text-right py-2">à¦ªà¦°à¦¿à¦®à¦¾à¦£</th>
-                        <th className="text-left py-2">à¦¬à¦¿à¦•à§à¦°à§‡à¦¤à¦¾</th>
+                        <th className="text-left py-2">
+                          à¦¬à¦¿à¦•à§à¦°à§‡à¦¤à¦¾
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -354,7 +406,9 @@ export default function DailySheetPage({
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-2">à¦¬à§à¦¯à¦•à§à¦¤à¦¿</th>
-                        <th className="text-left py-2">à¦‰à¦¦à§à¦¦à§‡à¦¶à§à¦¯</th>
+                        <th className="text-left py-2">
+                          à¦‰à¦¦à§à¦¦à§‡à¦¶à§à¦¯
+                        </th>
                         <th className="text-right py-2">à¦ªà¦°à¦¿à¦®à¦¾à¦£</th>
                       </tr>
                     </thead>
@@ -385,7 +439,9 @@ export default function DailySheetPage({
             {/* Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>à¦¦à¦¿à¦¨à§‡à¦° à¦¸à¦¾à¦°à¦¸à¦‚à¦•à§à¦·à§‡à¦ª</CardTitle>
+                <CardTitle>
+                  à¦¦à¦¿à¦¨à§‡à¦° à¦¸à¦¾à¦°à¦¸à¦‚à¦•à§à¦·à§‡à¦ª
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -427,15 +483,21 @@ export default function DailySheetPage({
             <div className="mt-8 pt-8 border-t-2 grid grid-cols-3 gap-8 text-center text-sm">
               <div>
                 <p className="mb-8">à¦ªà§à¦°à¦¸à§à¦¤à§à¦¤à¦•à¦¾à¦°à§€</p>
-                <p className="border-t pt-2">à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–</p>
+                <p className="border-t pt-2">
+                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–
+                </p>
               </div>
               <div>
                 <p className="mb-8">à¦ªà¦°à§€à¦•à§à¦·à¦•</p>
-                <p className="border-t pt-2">à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–</p>
+                <p className="border-t pt-2">
+                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–
+                </p>
               </div>
               <div>
                 <p className="mb-8">à¦…à¦¨à§à¦®à§‹à¦¦à¦¨à¦•à¦¾à¦°à§€</p>
-                <p className="border-t pt-2">à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–</p>
+                <p className="border-t pt-2">
+                  à¦¸à§à¦¬à¦¾à¦•à§à¦·à¦° à¦“ à¦¤à¦¾à¦°à¦¿à¦–
+                </p>
               </div>
             </div>
           </div>
@@ -459,4 +521,3 @@ export default function DailySheetPage({
     </div>
   );
 }
-

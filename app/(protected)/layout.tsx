@@ -43,9 +43,7 @@ export default async function ProtectedLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
       <Sidebar tenders={tenders as any} userRole={profile?.role || "user"} />
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 }

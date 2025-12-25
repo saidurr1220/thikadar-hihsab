@@ -45,7 +45,7 @@ export default async function SubcontractorDetailPage({
       labor_type,
       khoraki_total,
       wage_total,
-      work_types (name_bn)
+      work_types!inner (name_bn)
     `
     )
     .eq("tender_id", params.tenderId)
@@ -136,9 +136,9 @@ export default async function SubcontractorDetailPage({
                         entry.labor_name ||
                         "Unnamed crew"}
                     </div>
-                    {entry.work_types?.name_bn && (
+                    {(entry.work_types as any)?.name_bn && (
                       <div className="text-xs text-gray-500">
-                        {entry.work_types.name_bn}
+                        {(entry.work_types as any).name_bn}
                       </div>
                     )}
                   </div>

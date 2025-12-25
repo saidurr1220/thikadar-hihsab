@@ -1,39 +1,89 @@
-import { createClient } from "@/lib/supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
+import { exportAdvancesReport } from "@/lib/utils/excel";
+import { FileSpreadsheet, Printer, ChevronLeft } from "lucide-react";
 
-export default async function AdvancesRegisterPage({
+export default function AdvancesRegisterPage({
   params,
 }: {
   params: { tenderId: string };
 }) {
-  const supabase = createClient();
+  const [tender, setTender] = useState<any>(null);
+  const [balances, setBalances] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { data: tender } = await supabase
-    .from("tenders")
-    .select("*")
-    .eq("id", params.tenderId)
-    .single();
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const { data: balances } = await supabase.rpc("get_person_balances", {
-    p_tender_id: params.tenderId,
-  });
+  const loadData = async () => {
+    setLoading(true);
+    const supabase = createClient();
+
+    const { data: tenderData } = await supabase
+      .from("tenders")
+      .select("*")
+      .eq("id", params.tenderId)
+      .single();
+    setTender(tenderData);
+
+    const { data: balancesData } = await supabase.rpc("get_person_balances", {
+      p_tender_id: params.tenderId,
+    });
+    setBalances(balancesData || []);
+
+    setLoading(false);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExport = () => {
+    exportAdvancesReport(balances, tender);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6 no-print">
+        <div className="mb-6 flex items-center justify-between no-print">
           <Link
             href={`/tender/${params.tenderId}/reports`}
-            className="text-blue-600 hover:text-blue-800 text-sm"
+            className="flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors"
           >
-            ← রিপোর্ট মেনু
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            রিপোর্ট মেনু
           </Link>
+          <h1 className="text-2xl font-bold text-gray-800">{labels.advanceLedger}</h1>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleExport} 
+              className="bg-green-600 hover:bg-green-700 gap-2"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Excel Export
+            </Button>
+            <Button 
+              onClick={handlePrint} 
+              className="bg-blue-600 hover:bg-blue-700 gap-2"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </Button>
+          </div>
         </div>
 
-        <div className="print-content">
+        {loading ? (
+          <p className="text-center">{labels.loading}</p>
+        ) : (
+          <div className="print-content">
           <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
             <h1 className="text-2xl font-bold mb-2">ঠিকাদারি হিসাব</h1>
             <h2 className="text-xl font-semibold mb-4">
@@ -97,7 +147,27 @@ export default async function AdvancesRegisterPage({
               </table>
             </CardContent>
           </Card>
-        </div>
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          .print-content {
+            padding: 20px;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 1.5cm;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
       </div>
     </div>
   );

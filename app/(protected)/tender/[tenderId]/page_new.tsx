@@ -97,7 +97,7 @@ export default async function TenderDashboardPage({
               <ArrowLeft className="h-4 w-4" />
               ড্যাশবোর্ড এ ফিরে যান
             </Link>
-            
+
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2 flex-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
@@ -113,16 +113,18 @@ export default async function TenderDashboardPage({
                       {tender.location}
                     </span>
                   )}
-                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${
-                    tender.is_active 
-                      ? "bg-emerald-100 text-emerald-700" 
-                      : "bg-gray-100 text-gray-600"
-                  }`}>
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${
+                      tender.is_active
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
                     {tender.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
                   </span>
                 </div>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
                 <Link href={`/tender/${params.tenderId}/reports`}>
                   <Button variant="outline" className="gap-2 shadow-sm">
@@ -147,12 +149,16 @@ export default async function TenderDashboardPage({
         <section>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">খরচের সারসংক্ষেপ</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+              খরচের সারসংক্ষেপ
+            </h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             <Card className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-indigo-100">মোট খরচ</CardTitle>
+                <CardTitle className="text-xs text-indigo-100">
+                  মোট খরচ
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xl sm:text-2xl font-bold">
@@ -171,63 +177,81 @@ export default async function TenderDashboardPage({
                   {formatCurrency(laborTotal)}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  {grandTotal > 0 ? `${((laborTotal / grandTotal) * 100).toFixed(1)}%` : "0%"}
+                  {grandTotal > 0
+                    ? `${((laborTotal / grandTotal) * 100).toFixed(1)}%`
+                    : "0%"}
                 </p>
               </CardContent>
             </Card>
 
             <Card className="bg-white border-green-200 shadow-md hover:shadow-lg transition-all">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-green-700">মালামাল</CardTitle>
+                <CardTitle className="text-xs text-green-700">
+                  মালামাল
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xl sm:text-2xl font-bold text-green-600">
                   {formatCurrency(materialsTotal)}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  {grandTotal > 0 ? `${((materialsTotal / grandTotal) * 100).toFixed(1)}%` : "0%"}
+                  {grandTotal > 0
+                    ? `${((materialsTotal / grandTotal) * 100).toFixed(1)}%`
+                    : "0%"}
                 </p>
               </CardContent>
             </Card>
 
             <Card className="bg-white border-orange-200 shadow-md hover:shadow-lg transition-all">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-orange-700">কাজের খরচ</CardTitle>
+                <CardTitle className="text-xs text-orange-700">
+                  কাজের খরচ
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xl sm:text-2xl font-bold text-orange-600">
                   {formatCurrency(activitiesTotal)}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  {grandTotal > 0 ? `${((activitiesTotal / grandTotal) * 100).toFixed(1)}%` : "0%"}
+                  {grandTotal > 0
+                    ? `${((activitiesTotal / grandTotal) * 100).toFixed(1)}%`
+                    : "0%"}
                 </p>
               </CardContent>
             </Card>
 
             <Card className="bg-white border-purple-200 shadow-md hover:shadow-lg transition-all">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-purple-700">বিক্রেতা</CardTitle>
+                <CardTitle className="text-xs text-purple-700">
+                  বিক্রেতা
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xl sm:text-2xl font-bold text-purple-600">
                   {formatCurrency(vendorTotal)}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  {grandTotal > 0 ? `${((vendorTotal / grandTotal) * 100).toFixed(1)}%` : "0%"}
+                  {grandTotal > 0
+                    ? `${((vendorTotal / grandTotal) * 100).toFixed(1)}%`
+                    : "0%"}
                 </p>
               </CardContent>
             </Card>
 
             <Card className="bg-white border-slate-200 shadow-md hover:shadow-lg transition-all">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-slate-700">অন্যান্য</CardTitle>
+                <CardTitle className="text-xs text-slate-700">
+                  অন্যান্য
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xl sm:text-2xl font-bold text-slate-600">
                   {formatCurrency(otherTotal)}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
-                  {grandTotal > 0 ? `${((otherTotal / grandTotal) * 100).toFixed(1)}%` : "0%"}
+                  {grandTotal > 0
+                    ? `${((otherTotal / grandTotal) * 100).toFixed(1)}%`
+                    : "0%"}
                 </p>
               </CardContent>
             </Card>
@@ -236,47 +260,87 @@ export default async function TenderDashboardPage({
 
         {/* Quick Actions */}
         <section>
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">দ্রুত এন্ট্রি</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
+            দ্রুত এন্ট্রি
+          </h2>
           <Card className="bg-white border-slate-200 shadow-lg">
             <CardContent className="p-4 sm:p-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <Link href={`/tender/${params.tenderId}/labor/add`} className="group">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-4 hover:border-blue-400 hover:bg-blue-50 transition-all">
+                <Link
+                  href={`/tender/${params.tenderId}/labor/add`}
+                  className="group"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-4 hover:border-blue-400 hover:bg-blue-50 transition-all"
+                  >
                     <HardHat className="h-6 w-6 text-blue-600 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-medium">শ্রমিক যোগ করুন</span>
                   </Button>
                 </Link>
-                
-                <Link href={`/tender/${params.tenderId}/materials/add`} className="group">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-4 hover:border-green-400 hover:bg-green-50 transition-all">
+
+                <Link
+                  href={`/tender/${params.tenderId}/materials/add`}
+                  className="group"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-4 hover:border-green-400 hover:bg-green-50 transition-all"
+                  >
                     <Package className="h-6 w-6 text-green-600 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-medium">মালামাল যোগ করুন</span>
+                    <span className="text-xs font-medium">
+                      মালামাল যোগ করুন
+                    </span>
                   </Button>
                 </Link>
-                
-                <Link href={`/tender/${params.tenderId}/activities/add`} className="group">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-4 hover:border-orange-400 hover:bg-orange-50 transition-all">
+
+                <Link
+                  href={`/tender/${params.tenderId}/activities/add`}
+                  className="group"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-4 hover:border-orange-400 hover:bg-orange-50 transition-all"
+                  >
                     <ClipboardList className="h-6 w-6 text-orange-600 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-medium">কাজ যোগ করুন</span>
                   </Button>
                 </Link>
-                
-                <Link href={`/tender/${params.tenderId}/advances/people`} className="group">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-4 hover:border-purple-400 hover:bg-purple-50 transition-all">
+
+                <Link
+                  href={`/tender/${params.tenderId}/advances/people`}
+                  className="group"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-4 hover:border-purple-400 hover:bg-purple-50 transition-all"
+                  >
                     <Users className="h-6 w-6 text-purple-600 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-medium">অগ্রিম</span>
                   </Button>
                 </Link>
-                
-                <Link href={`/tender/${params.tenderId}/expenses/vendors`} className="group">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-4 hover:border-pink-400 hover:bg-pink-50 transition-all">
+
+                <Link
+                  href={`/tender/${params.tenderId}/expenses/vendors`}
+                  className="group"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-4 hover:border-pink-400 hover:bg-pink-50 transition-all"
+                  >
                     <Truck className="h-6 w-6 text-pink-600 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-medium">বিক্রেতা</span>
                   </Button>
                 </Link>
-                
-                <Link href={`/tender/${params.tenderId}/ledger-summary`} className="group">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-4 hover:border-slate-400 hover:bg-slate-50 transition-all">
+
+                <Link
+                  href={`/tender/${params.tenderId}/ledger-summary`}
+                  className="group"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-4 hover:border-slate-400 hover:bg-slate-50 transition-all"
+                  >
                     <FileText className="h-6 w-6 text-slate-600 group-hover:scale-110 transition-transform" />
                     <span className="text-xs font-medium">লেজার</span>
                   </Button>
@@ -288,7 +352,9 @@ export default async function TenderDashboardPage({
 
         {/* Main Navigation Cards */}
         <section>
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">রেজিস্টার সমূহ</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
+            রেজিস্টার সমূহ
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link href={`/tender/${params.tenderId}/labor`}>
               <Card className="group h-full bg-white border-2 border-slate-200 hover:border-blue-400 shadow-md hover:shadow-xl transition-all cursor-pointer">
@@ -297,7 +363,9 @@ export default async function TenderDashboardPage({
                     <div className="p-2 rounded-lg bg-blue-100 group-hover:bg-blue-200 transition-colors">
                       <HardHat className="h-6 w-6 text-blue-600" />
                     </div>
-                    <span className="text-gray-900 group-hover:text-blue-600 transition-colors">শ্রমিক রেজিস্টার</span>
+                    <span className="text-gray-900 group-hover:text-blue-600 transition-colors">
+                      শ্রমিক রেজিস্টার
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -315,7 +383,9 @@ export default async function TenderDashboardPage({
                     <div className="p-2 rounded-lg bg-green-100 group-hover:bg-green-200 transition-colors">
                       <Package className="h-6 w-6 text-green-600" />
                     </div>
-                    <span className="text-gray-900 group-hover:text-green-600 transition-colors">মালামাল রেজিস্টার</span>
+                    <span className="text-gray-900 group-hover:text-green-600 transition-colors">
+                      মালামাল রেজিস্টার
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -333,7 +403,9 @@ export default async function TenderDashboardPage({
                     <div className="p-2 rounded-lg bg-orange-100 group-hover:bg-orange-200 transition-colors">
                       <ClipboardList className="h-6 w-6 text-orange-600" />
                     </div>
-                    <span className="text-gray-900 group-hover:text-orange-600 transition-colors">কাজের রেজিস্টার</span>
+                    <span className="text-gray-900 group-hover:text-orange-600 transition-colors">
+                      কাজের রেজিস্টার
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -351,7 +423,9 @@ export default async function TenderDashboardPage({
                     <div className="p-2 rounded-lg bg-purple-100 group-hover:bg-purple-200 transition-colors">
                       <Users className="h-6 w-6 text-purple-600" />
                     </div>
-                    <span className="text-gray-900 group-hover:text-purple-600 transition-colors">স্টাফ অগ্রিম</span>
+                    <span className="text-gray-900 group-hover:text-purple-600 transition-colors">
+                      স্টাফ অগ্রিম
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -369,7 +443,9 @@ export default async function TenderDashboardPage({
                     <div className="p-2 rounded-lg bg-pink-100 group-hover:bg-pink-200 transition-colors">
                       <Truck className="h-6 w-6 text-pink-600" />
                     </div>
-                    <span className="text-gray-900 group-hover:text-pink-600 transition-colors">বিক্রেতা খরচ</span>
+                    <span className="text-gray-900 group-hover:text-pink-600 transition-colors">
+                      বিক্রেতা খরচ
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -387,7 +463,9 @@ export default async function TenderDashboardPage({
                     <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-slate-200 transition-colors">
                       <FileText className="h-6 w-6 text-slate-600" />
                     </div>
-                    <span className="text-gray-900 group-hover:text-slate-600 transition-colors">লেজার সারসংক্ষেপ</span>
+                    <span className="text-gray-900 group-hover:text-slate-600 transition-colors">
+                      লেজার সারসংক্ষেপ
+                    </span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
