@@ -91,9 +91,7 @@ export default function TenderSummaryPage({
   const laborTotal =
     labor?.reduce(
       (sum, l) =>
-        sum +
-        Number(l.khoraki_total || 0) +
-        Number(l.wage_total || 0),
+        sum + Number(l.khoraki_total || 0) + Number(l.wage_total || 0),
       0
     ) || 0;
   const materialsTotal =

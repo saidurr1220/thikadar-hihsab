@@ -19,6 +19,7 @@ interface ExpenseData {
   name: string;
   value: number;
   color: string;
+  [key: string]: any;
 }
 
 export default function DashboardCharts({

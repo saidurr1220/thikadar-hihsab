@@ -41,16 +41,20 @@ export default async function ActivitiesRegisterPage({
 
         <div className="print-content">
           <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
-            <h1 className="text-2xl font-bold mb-2">à¦¥à¦¿à¦•à¦¾à¦¦à¦¾à¦°à¦¿ à¦¹à¦¿à¦¸à¦¾à¦¬</h1>
+            <h1 className="text-2xl font-bold mb-2">
+              à¦¥à¦¿à¦•à¦¾à¦¦à¦¾à¦°à¦¿ à¦¹à¦¿à¦¸à¦¾à¦¬
+            </h1>
             <h2 className="text-xl font-semibold mb-4">
               {labels.activityRegister}
             </h2>
             <div className="text-sm space-y-1">
               <p>
-                <strong>à¦Ÿà§‡à¦¨à§à¦¡à¦¾à¦° à¦•à§‹à¦¡:</strong> {tender?.tender_code}
+                <strong>à¦Ÿà§‡à¦¨à§à¦¡à¦¾à¦° à¦•à§‹à¦¡:</strong>{" "}
+                {tender?.tender_code}
               </p>
               <p>
-                <strong>à¦ªà§à¦°à¦•à¦²à§à¦ªà§‡à¦° à¦¨à¦¾à¦®:</strong> {tender?.project_name}
+                <strong>à¦ªà§à¦°à¦•à¦²à§à¦ªà§‡à¦° à¦¨à¦¾à¦®:</strong>{" "}
+                {tender?.project_name}
               </p>
             </div>
           </div>
@@ -102,4 +106,3 @@ export default async function ActivitiesRegisterPage({
     </div>
   );
 }
-

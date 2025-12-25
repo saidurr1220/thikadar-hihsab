@@ -27,9 +27,7 @@ export default async function LaborRegisterPage({
   const total =
     labor?.reduce(
       (sum, l) =>
-        sum +
-        Number(l.khoraki_total || 0) +
-        Number(l.wage_total || 0),
+        sum + Number(l.khoraki_total || 0) + Number(l.wage_total || 0),
       0
     ) || 0;
 

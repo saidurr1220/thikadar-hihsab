@@ -46,7 +46,7 @@ export default async function LaborListPage({
     contractEntries?.reduce((sum, l) => sum + calcBase(l), 0) || 0;
   const combinedTotal = dailyTotal + contractTotal;
 
-  const activeTab = searchParams?.tab === "contract" ? "contract" : "daily";
+  const activeTab = searchParams?.tab === "daily" ? "daily" : "contract";
   const activeEntries =
     activeTab === "contract" ? contractEntries : dailyEntries;
   const activeTotal = activeTab === "contract" ? contractTotal : dailyTotal;
@@ -79,7 +79,8 @@ export default async function LaborListPage({
                 Labor & Subcontractors
               </h1>
               <p className="text-sm text-gray-600">
-                Daily labor stays with your expenses; contract crews track khoraki separately.
+                Daily labor stays with your expenses; contract crews track
+                khoraki separately.
               </p>
             </div>
           </div>
@@ -208,7 +209,9 @@ export default async function LaborListPage({
                               : "Daily labor"
                           }
                         >
-                          {entry.labor_type === "contract" ? "Contract" : "Daily"}
+                          {entry.labor_type === "contract"
+                            ? "Contract"
+                            : "Daily"}
                         </span>
                         {entry.subcontractors?.name && (
                           <span>Aú {entry.subcontractors.name}</span>
