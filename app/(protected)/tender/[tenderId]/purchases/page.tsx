@@ -85,7 +85,10 @@ export default function PurchasesPage({
     // Load vendor purchases
     const { data: vendorPurchases } = await supabase
       .from("vendor_purchases")
-      .select("*")
+      .select(`
+        *,
+        vendor:vendors(id, name, phone)
+      `)
       .eq("tender_id", params.tenderId)
       .order("purchase_date", { ascending: false });
 
@@ -122,7 +125,7 @@ export default function PurchasesPage({
     });
 
     // Aggregate vendor purchases
-    vendorPurchases?.forEach((vp) => {
+    vendorPurchases?.forEach((vp: any) => {
       const vendor = vendorMap.get(vp.vendor_id);
       if (vendor) {
         vendor.total_purchases += Number(vp.total_amount || 0);
@@ -163,12 +166,11 @@ export default function PurchasesPage({
     // Process purchases for unified list
     const allPurchases: Purchase[] = [];
 
-    vendorPurchases?.forEach((vp) => {
-      const vendor = vendorData?.find((v) => v.id === vp.vendor_id);
+    vendorPurchases?.forEach((vp: any) => {
       allPurchases.push({
         id: vp.id,
         date: vp.purchase_date,
-        vendor_name: vendor?.name || vp.supplier || "Unknown Vendor",
+        vendor_name: vp.vendor?.name || "Unknown Vendor",
         vendor_id: vp.vendor_id,
         item_name: vp.item_name || "Vendor Purchase",
         quantity: Number(vp.quantity || 0),
