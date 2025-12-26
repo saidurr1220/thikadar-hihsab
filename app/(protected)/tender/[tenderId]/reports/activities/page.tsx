@@ -36,7 +36,13 @@ export default function ActivitiesRegisterPage({
 
     const { data: activitiesData } = await supabase
       .from("activity_expenses")
-      .select("*, expense_categories(name_bn), expense_subcategories(name_bn)")
+      .select(
+        `
+        *,
+        activity_categories!activity_expenses_category_id_fkey(name_bn),
+        subcategory:activity_categories!activity_expenses_subcategory_id_fkey(name_bn)
+      `
+      )
       .eq("tender_id", params.tenderId)
       .order("expense_date", { ascending: false })
       .limit(200);
@@ -127,9 +133,8 @@ export default function ActivitiesRegisterPage({
                       <tr key={a.id} className="border-b">
                         <td className="py-2">{formatDate(a.expense_date)}</td>
                         <td className="py-2">
-                          {a.expense_categories?.name_bn}
-                          {a.expense_subcategories &&
-                            ` - ${a.expense_subcategories.name_bn}`}
+                          {a.activity_categories?.name_bn}
+                          {a.subcategory && ` - ${a.subcategory.name_bn}`}
                         </td>
                         <td className="py-2">{a.description}</td>
                         <td className="text-right py-2 font-semibold">

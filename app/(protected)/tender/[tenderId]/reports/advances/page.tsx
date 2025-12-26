@@ -34,9 +34,14 @@ export default function AdvancesRegisterPage({
       .single();
     setTender(tenderData);
 
-    const { data: balancesData } = await supabase.rpc("get_person_balances", {
+    const { data: balancesData, error: balancesError } = await supabase.rpc("get_person_balances", {
       p_tender_id: params.tenderId,
     });
+    
+    if (balancesError) {
+      console.error("Error loading balances:", balancesError);
+    }
+    console.log("Balances data:", balancesData);
     setBalances(balancesData || []);
 
     setLoading(false);
@@ -82,6 +87,13 @@ export default function AdvancesRegisterPage({
 
         {loading ? (
           <p className="text-center">{labels.loading}</p>
+        ) : balances && balances.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center text-gray-500">
+              <p>কোনো অগ্রিম তথ্য পাওয়া যায়নি।</p>
+              <p className="text-sm mt-2">প্রথমে কিছু ব্যক্তিকে অগ্রিম প্রদান করুন।</p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="print-content">
           <div className="bg-white border-2 border-gray-300 rounded-lg p-6 mb-6 text-center">
@@ -151,17 +163,57 @@ export default function AdvancesRegisterPage({
         )}
       </div>
 
-      <style>{`
+      <style jsx global>{`
         @media print {
+          body {
+            background: white !important;
+          }
+          
           .no-print {
             display: none !important;
           }
+          
           .print-content {
-            padding: 20px;
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
           }
+          
           @page {
             size: A4 portrait;
-            margin: 1.5cm;
+            margin: 15mm 12mm;
+          }
+          
+          /* Avoid breaks inside tables */
+          table {
+            page-break-inside: avoid;
+          }
+          
+          /* Print colors */
+          .text-green-600 {
+            color: #15803d !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          .text-red-600 {
+            color: #b91c1c !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          
+          /* Font sizes */
+          body {
+            font-size: 11pt;
+            line-height: 1.4;
+          }
+          
+          h1 {
+            font-size: 18pt;
+          }
+          
+          h2 {
+            font-size: 14pt;
           }
         }
       `}</style>

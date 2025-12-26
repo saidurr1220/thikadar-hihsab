@@ -62,10 +62,7 @@ export default function VendorExpenseHubPage({
     setCategories(categoryData || []);
     setVendors(vendorData || []);
     setTotalPurchasesAll(
-      purchaseData?.reduce(
-        (sum, p) => sum + Number(p.total_cost || 0),
-        0
-      ) || 0
+      purchaseData?.reduce((sum, p) => sum + Number(p.total_cost || 0), 0) || 0
     );
 
     const totals: Record<string, { purchases: number; paid: number }> = {};
@@ -128,9 +125,9 @@ export default function VendorExpenseHubPage({
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(254,243,199,0.6),rgba(255,255,255,0))]">
       <div className="bg-gradient-to-br from-amber-50 via-white to-slate-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 space-y-6">
+        <div className="max-w-6xl mx-auto px-4 space-y-6 lg:pl-8 pl-20">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
+            <div className="text-center lg:text-left">
               <Link
                 href={`/tender/${params.tenderId}`}
                 className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
@@ -244,7 +241,10 @@ export default function VendorExpenseHubPage({
                     className="w-full h-10 border rounded-md px-3 text-sm"
                     value={newVendor.categoryId}
                     onChange={(e) =>
-                      setNewVendor((p) => ({ ...p, categoryId: e.target.value }))
+                      setNewVendor((p) => ({
+                        ...p,
+                        categoryId: e.target.value,
+                      }))
                     }
                   >
                     <option value="">All</option>

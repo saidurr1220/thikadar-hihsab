@@ -17,6 +17,7 @@ export default function MaterialsRegisterPage({
 }) {
   const [tender, setTender] = useState<any>(null);
   const [materials, setMaterials] = useState<any[]>([]);
+  const [vendorPurchases, setVendorPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,11 +43,22 @@ export default function MaterialsRegisterPage({
       .limit(200);
     setMaterials(materialsData || []);
 
+    // Load vendor purchases
+    const { data: vendorPurchasesData } = await supabase
+      .from("vendor_purchases")
+      .select("*, vendors(name)")
+      .eq("tender_id", params.tenderId)
+      .order("purchase_date", { ascending: false })
+      .limit(200);
+    setVendorPurchases(vendorPurchasesData || []);
+
     setLoading(false);
   };
 
   const total =
-    materials?.reduce((sum, m) => sum + Number(m.total_amount || 0), 0) || 0;
+    (materials?.reduce((sum, m) => sum + Number(m.total_amount || 0), 0) || 0) +
+    (vendorPurchases?.reduce((sum, v) => sum + Number(v.total_cost || 0), 0) ||
+      0);
 
   const handlePrint = () => {
     window.print();
@@ -124,8 +136,9 @@ export default function MaterialsRegisterPage({
                     </tr>
                   </thead>
                   <tbody>
+                    {/* Regular material purchases */}
                     {materials?.map((m) => (
-                      <tr key={m.id} className="border-b">
+                      <tr key={`mat-${m.id}`} className="border-b">
                         <td className="py-2">{formatDate(m.purchase_date)}</td>
                         <td className="py-2">
                           {m.materials?.name_bn || m.custom_item_name}
@@ -141,6 +154,28 @@ export default function MaterialsRegisterPage({
                           {formatCurrency(m.total_amount)}
                         </td>
                         <td className="py-2">{m.supplier || "-"}</td>
+                      </tr>
+                    ))}
+                    {/* Vendor purchases */}
+                    {vendorPurchases?.map((v) => (
+                      <tr
+                        key={`ven-${v.id}`}
+                        className="border-b bg-blue-50/30"
+                      >
+                        <td className="py-2">{formatDate(v.purchase_date)}</td>
+                        <td className="py-2">
+                          {v.item_name || "ভেন্ডর ক্রয়"}
+                        </td>
+                        <td className="text-right py-2">
+                          {v.quantity ? `${v.quantity} ${v.unit}` : "-"}
+                        </td>
+                        <td className="text-right py-2">
+                          {v.unit_price ? formatCurrency(v.unit_price) : "-"}
+                        </td>
+                        <td className="text-right py-2 font-semibold">
+                          {formatCurrency(v.total_cost)}
+                        </td>
+                        <td className="py-2">{v.vendors?.name || "-"}</td>
                       </tr>
                     ))}
                     <tr className="font-bold border-t-2">

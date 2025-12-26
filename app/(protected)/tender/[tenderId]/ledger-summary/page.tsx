@@ -45,6 +45,14 @@ export default async function LedgerSummaryPage({
     .gte("purchase_date", fromDate)
     .lte("purchase_date", toDate);
 
+  // Get vendor purchases (bricks, sand, rod, cement etc.)
+  const { data: vendorPurchases } = await supabase
+    .from("vendor_purchases")
+    .select("total_amount, purchase_date")
+    .eq("tender_id", params.tenderId)
+    .gte("purchase_date", fromDate)
+    .lte("purchase_date", toDate);
+
   const { data: activities } = await supabase
     .from("activity_expenses")
     .select("amount, expense_date, expense_categories!left(name_bn)")
@@ -52,12 +60,71 @@ export default async function LedgerSummaryPage({
     .gte("expense_date", fromDate)
     .lte("expense_date", toDate);
 
-  const { data: advances } = await supabase
-    .from("advances")
+  // Get personal advances (NOT general advances like bank/MFS)
+  const { data: personAdvancesOnly } = await supabase
+    .from("person_advances")
     .select("amount, advance_date")
     .eq("tender_id", params.tenderId)
     .gte("advance_date", fromDate)
     .lte("advance_date", toDate);
+
+  // Get person-wise advance and expense breakdown
+  const { data: personAdvances } = await supabase
+    .from("person_advances")
+    .select(`
+      *,
+      person:persons!person_advances_person_id_fkey (full_name)
+    `)
+    .eq("tender_id", params.tenderId)
+    .gte("advance_date", fromDate)
+    .lte("advance_date", toDate);
+
+  const { data: personExpenses } = await supabase
+    .from("person_expenses")
+    .select(`
+      *,
+      person:persons!person_expenses_person_id_fkey (full_name)
+    `)
+    .eq("tender_id", params.tenderId)
+    .gte("expense_date", fromDate)
+    .lte("expense_date", toDate);
+
+  // Calculate person-wise summary
+  const personSummary = new Map();
+  
+  personAdvances?.forEach((adv: any) => {
+    const personId = adv.person_id;
+    const personName = adv.person?.full_name || "Unknown";
+    if (!personSummary.has(personId)) {
+      personSummary.set(personId, {
+        name: personName,
+        advances: 0,
+        expenses: 0,
+        balance: 0
+      });
+    }
+    const summary = personSummary.get(personId);
+    summary.advances += Number(adv.amount || 0);
+    summary.balance += Number(adv.amount || 0);
+  });
+
+  personExpenses?.forEach((exp: any) => {
+    const personId = exp.person_id;
+    const personName = exp.person?.full_name || "Unknown";
+    if (!personSummary.has(personId)) {
+      personSummary.set(personId, {
+        name: personName,
+        advances: 0,
+        expenses: 0,
+        balance: 0
+      });
+    }
+    const summary = personSummary.get(personId);
+    summary.expenses += Number(exp.amount || 0);
+    summary.balance -= Number(exp.amount || 0);
+  });
+
+  const personList = Array.from(personSummary.values());
 
   // Calculate totals
   const laborTotal =
@@ -72,13 +139,13 @@ export default async function LedgerSummaryPage({
   const materialsTotal =
     materials?.reduce((sum, m) => sum + Number(m.total_amount || 0), 0) || 0;
 
+  const vendorPurchasesTotal =
+    vendorPurchases?.reduce((sum, v) => sum + Number(v.total_amount || 0), 0) || 0;
+
   const activitiesTotal =
     activities?.reduce((sum, a) => sum + Number(a.amount || 0), 0) || 0;
 
-  const advancesTotal =
-    advances?.reduce((sum, a) => sum + Number(a.amount || 0), 0) || 0;
-
-  const grandTotal = laborTotal + materialsTotal + activitiesTotal;
+  const grandTotal = laborTotal + materialsTotal + vendorPurchasesTotal + activitiesTotal;
 
   // Group activities by category
   const activitiesByCategory = activities?.reduce((acc: any, a) => {
@@ -94,27 +161,35 @@ export default async function LedgerSummaryPage({
   // Create Khata summary
   const khataList = [
     {
-      name: "à¦¶à§à¦°à¦®à¦¿à¦• à¦–à¦¾à¦¤à¦¾",
+      name: "শ্রমিক খাতা",
       name_en: "Labor Account",
       total: laborTotal,
       count: labor?.length || 0,
-      icon: "ðŸ‘·",
+      icon: "👷",
       color: "blue",
     },
     {
-      name: "à¦®à¦¾à¦²à¦¾à¦®à¦¾à¦² à¦–à¦¾à¦¤à¦¾",
+      name: "মালামাল খাতা",
       name_en: "Materials Account",
       total: materialsTotal,
       count: materials?.length || 0,
-      icon: "ðŸ§±",
+      icon: "🧱",
       color: "green",
     },
     {
-      name: "à¦…à¦—à§à¦°à¦¿à¦® à¦–à¦¾à¦¤à¦¾",
-      name_en: "Advance Account",
-      total: advancesTotal,
-      count: advances?.length || 0,
-      icon: "ðŸ’°",
+      name: "ভেন্ডর ক্রয়",
+      name_en: "Vendor Purchases",
+      total: vendorPurchasesTotal,
+      count: vendorPurchases?.length || 0,
+      icon: "🏪",
+      color: "purple",
+    },
+    {
+      name: "ব্যক্তিগত অগ্রিম",
+      name_en: "Personal Advances",
+      total: personAdvancesOnly?.reduce((sum, a) => sum + Number(a.amount || 0), 0) || 0,
+      count: personAdvancesOnly?.length || 0,
+      icon: "💰",
       color: "yellow",
     },
   ];
@@ -124,11 +199,11 @@ export default async function LedgerSummaryPage({
     Object.entries(activitiesByCategory).forEach(
       ([cat, data]: [string, any]) => {
         khataList.push({
-          name: `${cat} à¦–à¦¾à¦¤à¦¾`,
+          name: `${cat} খাতা`,
           name_en: `${cat} Account`,
           total: data.total,
           count: data.count,
-          icon: "ðŸ”§",
+          icon: "🔧",
           color: "purple",
         });
       }
@@ -146,50 +221,53 @@ export default async function LedgerSummaryPage({
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6">
+        {/* Navigation - Hidden on print */}
+        <div className="mb-6 no-print">
           <Link
             href={`/tender/${params.tenderId}`}
             className="text-blue-600 hover:text-blue-800 text-sm"
           >
-            â† à¦Ÿà§‡à¦¨à§à¦¡à¦¾à¦° à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡
+            ← টেন্ডার ড্যাশবোর্ড
           </Link>
         </div>
 
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
-          <div className="flex justify-between items-start mb-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100 print:shadow-none print:border-2 print:border-gray-800 print:rounded-none print:mb-4 print:p-4">
+          <div className="flex justify-between items-start mb-4 print:mb-3">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                à¦–à¦¾à¦¤à¦¾ à¦¸à¦¾à¦°à¦¸à¦‚à¦•à§à¦·à§‡à¦ª
+              <h1 className="text-3xl font-bold text-gray-900 mb-2 print:text-2xl print:mb-1">
+                খাতা সারসংক্ষেপ
               </h1>
-              <p className="text-gray-600">
-                {tender?.project_name} â€¢ {tender?.tender_code}
+              <p className="text-gray-600 print:text-black print:text-sm">
+                {tender?.project_name} • {tender?.tender_code}
               </p>
             </div>
             <div className="flex gap-3 items-start">
-              <PrintButton />
+              <div className="no-print">
+                <PrintButton />
+              </div>
               <div className="text-right">
-                <p className="text-sm text-gray-600">à¦¸à¦®à¦¯à¦¼à¦•à¦¾à¦²</p>
-                <p className="font-semibold">
+                <p className="text-sm text-gray-600 print:text-black print:text-xs">সময়কাল</p>
+                <p className="font-semibold print:text-sm">
                   {formatDate(fromDate)} - {formatDate(toDate)}
                 </p>
-                <p className="text-sm text-gray-600 mt-1">{daysDiff} à¦¦à¦¿à¦¨</p>
+                <p className="text-sm text-gray-600 mt-1 print:text-black print:text-xs print:mt-0">{daysDiff} দিন</p>
               </div>
             </div>
           </div>
 
           {/* Grand Total */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
-            <p className="text-sm opacity-90 mb-1">à¦®à§‹à¦Ÿ à¦–à¦°à¦š</p>
-            <p className="text-4xl font-bold">{formatCurrency(grandTotal)}</p>
-            <p className="text-sm opacity-90 mt-2">
-              à¦¦à§ˆà¦¨à¦¿à¦• à¦—à¦¡à¦¼: {formatCurrency(grandTotal / daysDiff)}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white print:bg-gray-100 print:text-black print:border-2 print:border-gray-800 print:p-3 print:rounded-none">
+            <p className="text-sm opacity-90 mb-1 print:opacity-100 print:font-semibold print:text-xs">মোট খরচ</p>
+            <p className="text-4xl font-bold print:text-2xl">{formatCurrency(grandTotal)}</p>
+            <p className="text-sm opacity-90 mt-2 print:opacity-100 print:text-xs print:mt-1">
+              দৈনিক গড়: {formatCurrency(grandTotal / daysDiff)}
             </p>
           </div>
         </div>
 
-        {/* Khata Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Khata Cards - Hidden on print, replaced by compact table */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 no-print">
           {khataList.map((khata, idx) => (
             <Card
               key={idx}
@@ -209,7 +287,7 @@ export default async function LedgerSummaryPage({
                 <div className="flex items-center justify-between">
                   <span className="text-3xl">{khata.icon}</span>
                   <span className="text-xs font-medium text-gray-500">
-                    {khata.count} à¦à¦¨à§à¦Ÿà§à¦°à¦¿
+                    {khata.count} এন্ট্রি
                   </span>
                 </div>
                 <CardTitle className="text-lg mt-2">{khata.name}</CardTitle>
@@ -221,13 +299,13 @@ export default async function LedgerSummaryPage({
                 </p>
                 <div className="mt-3 pt-3 border-t">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">à¦®à§‹à¦Ÿ à¦–à¦°à¦šà§‡à¦°</span>
+                    <span className="text-gray-600">মোট খরচের</span>
                     <span className="font-semibold text-blue-600">
                       {((khata.total / grandTotal) * 100).toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
-                    <span className="text-gray-600">à¦¦à§ˆà¦¨à¦¿à¦• à¦—à¦¡à¦¼</span>
+                    <span className="text-gray-600">দৈনিক গড়</span>
                     <span className="font-semibold">
                       {formatCurrency(khata.total / daysDiff)}
                     </span>
@@ -239,62 +317,62 @@ export default async function LedgerSummaryPage({
         </div>
 
         {/* Detailed Breakdown Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>à¦¬à¦¿à¦¸à§à¦¤à¦¾à¦°à¦¿à¦¤ à¦¹à¦¿à¦¸à¦¾à¦¬</CardTitle>
+        <Card className="mb-6 print:shadow-none print:border-2 print:border-gray-800 print:rounded-none">
+          <CardHeader className="print:pb-1 print:pt-2">
+            <CardTitle className="print:text-base">বিস্তারিত হিসাব</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="print:p-2">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full print:text-xs">
                 <thead>
                   <tr className="border-b-2">
-                    <th className="text-left py-3 px-4">à¦–à¦¾à¦¤à¦¾à¦° à¦¨à¦¾à¦®</th>
-                    <th className="text-right py-3 px-4">à¦à¦¨à§à¦Ÿà§à¦°à¦¿ à¦¸à¦‚à¦–à§à¦¯à¦¾</th>
-                    <th className="text-right py-3 px-4">à¦®à§‹à¦Ÿ à¦Ÿà¦¾à¦•à¦¾</th>
-                    <th className="text-right py-3 px-4">à¦¶à¦¤à¦¾à¦‚à¦¶</th>
-                    <th className="text-right py-3 px-4">à¦¦à§ˆà¦¨à¦¿à¦• à¦—à¦¡à¦¼</th>
+                    <th className="text-left py-3 px-4 print:py-1 print:px-2">খাতার নাম</th>
+                    <th className="text-right py-3 px-4 print:py-1 print:px-2">এন্ট্রি সংখ্যা</th>
+                    <th className="text-right py-3 px-4 print:py-1 print:px-2">মোট টাকা</th>
+                    <th className="text-right py-3 px-4 print:py-1 print:px-2">শতাংশ</th>
+                    <th className="text-right py-3 px-4 print:py-1 print:px-2">দৈনিক গড়</th>
                   </tr>
                 </thead>
                 <tbody>
                   {khataList.map((khata, idx) => (
-                    <tr key={idx} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{khata.icon}</span>
+                    <tr key={idx} className="border-b hover:bg-gray-50 print:hover:bg-transparent">
+                      <td className="py-3 px-4 print:py-1 print:px-2">
+                        <div className="flex items-center gap-2 print:gap-1">
+                          <span className="text-xl print:text-base">{khata.icon}</span>
                           <div>
-                            <p className="font-semibold">{khata.name}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-semibold print:text-xs">{khata.name}</p>
+                            <p className="text-xs text-gray-500 print:hidden">
                               {khata.name_en}
                             </p>
                           </div>
                         </div>
                       </td>
-                      <td className="text-right py-3 px-4 text-gray-600">
+                      <td className="text-right py-3 px-4 text-gray-600 print:py-1 print:px-2 print:text-black">
                         {khata.count}
                       </td>
-                      <td className="text-right py-3 px-4 font-semibold">
+                      <td className="text-right py-3 px-4 font-semibold print:py-1 print:px-2">
                         {formatCurrency(khata.total)}
                       </td>
-                      <td className="text-right py-3 px-4">
-                        <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">
+                      <td className="text-right py-3 px-4 print:py-1 print:px-2">
+                        <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium print:px-1 print:py-0 print:bg-transparent print:text-black print:text-xs">
                           {((khata.total / grandTotal) * 100).toFixed(1)}%
                         </span>
                       </td>
-                      <td className="text-right py-3 px-4 text-gray-600">
+                      <td className="text-right py-3 px-4 text-gray-600 print:py-1 print:px-2 print:text-black">
                         {formatCurrency(khata.total / daysDiff)}
                       </td>
                     </tr>
                   ))}
-                  <tr className="font-bold bg-gray-50 border-t-2">
-                    <td className="py-3 px-4">à¦¸à¦°à§à¦¬à¦®à§‹à¦Ÿ</td>
-                    <td className="text-right py-3 px-4">
+                  <tr className="font-bold bg-gray-50 border-t-2 print:bg-transparent">
+                    <td className="py-3 px-4 print:py-1 print:px-2">সর্বমোট</td>
+                    <td className="text-right py-3 px-4 print:py-1 print:px-2">
                       {khataList.reduce((sum, k) => sum + k.count, 0)}
                     </td>
-                    <td className="text-right py-3 px-4">
+                    <td className="text-right py-3 px-4 print:py-1 print:px-2">
                       {formatCurrency(grandTotal)}
                     </td>
-                    <td className="text-right py-3 px-4">100%</td>
-                    <td className="text-right py-3 px-4">
+                    <td className="text-right py-3 px-4 print:py-1 print:px-2">100%</td>
+                    <td className="text-right py-3 px-4 print:py-1 print:px-2">
                       {formatCurrency(grandTotal / daysDiff)}
                     </td>
                   </tr>
@@ -304,16 +382,70 @@ export default async function LedgerSummaryPage({
           </CardContent>
         </Card>
 
+        {/* Person-wise Breakdown */}
+        {personList.length > 0 && (
+          <Card className="mb-6 print:shadow-none print:border-2 print:border-gray-800 print:rounded-none">
+            <CardHeader className="print:pb-1 print:pt-2">
+              <CardTitle className="print:text-base">ব্যক্তিভিত্তিক অগ্রিম ও খরচ</CardTitle>
+            </CardHeader>
+            <CardContent className="print:p-2">
+              <div className="overflow-x-auto">
+                <table className="w-full print:text-xs">
+                  <thead>
+                    <tr className="border-b-2">
+                      <th className="text-left py-3 px-4 print:py-1 print:px-2">ব্যক্তির নাম</th>
+                      <th className="text-right py-3 px-4 print:py-1 print:px-2">অগ্রিম</th>
+                      <th className="text-right py-3 px-4 print:py-1 print:px-2">খরচ</th>
+                      <th className="text-right py-3 px-4 print:py-1 print:px-2">ব্যালেন্স</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {personList.map((person: any, idx: number) => (
+                      <tr key={idx} className="border-b hover:bg-gray-50 print:hover:bg-transparent">
+                        <td className="py-3 px-4 print:py-1 print:px-2 font-medium">{person.name}</td>
+                        <td className="text-right py-3 px-4 print:py-1 print:px-2 text-green-700 print:text-black">
+                          {formatCurrency(person.advances)}
+                        </td>
+                        <td className="text-right py-3 px-4 print:py-1 print:px-2 text-red-700 print:text-black">
+                          {formatCurrency(person.expenses)}
+                        </td>
+                        <td className="text-right py-3 px-4 print:py-1 print:px-2 font-semibold">
+                          <span className={person.balance >= 0 ? "text-green-700 print:text-black" : "text-red-700 print:text-black"}>
+                            {formatCurrency(Math.abs(person.balance))}
+                            {person.balance < 0 ? " (পাবে)" : " (বাকি)"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="font-bold bg-gray-50 border-t-2 print:bg-transparent">
+                      <td className="py-3 px-4 print:py-1 print:px-2">সর্বমোট</td>
+                      <td className="text-right py-3 px-4 print:py-1 print:px-2">
+                        {formatCurrency(personList.reduce((sum: number, p: any) => sum + p.advances, 0))}
+                      </td>
+                      <td className="text-right py-3 px-4 print:py-1 print:px-2">
+                        {formatCurrency(personList.reduce((sum: number, p: any) => sum + p.expenses, 0))}
+                      </td>
+                      <td className="text-right py-3 px-4 print:py-1 print:px-2">
+                        {formatCurrency(personList.reduce((sum: number, p: any) => sum + p.balance, 0))}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Date Range Filter */}
-        <Card className="mt-8">
+        <Card className="mt-8 no-print">
           <CardHeader>
-            <CardTitle>à¦¸à¦®à¦¯à¦¼à¦•à¦¾à¦² à¦ªà¦°à¦¿à¦¬à¦°à§à¦¤à¦¨ à¦•à¦°à§à¦¨</CardTitle>
+            <CardTitle>সময়কাল পরিবর্তন করুন</CardTitle>
           </CardHeader>
           <CardContent>
             <form method="get" className="flex gap-4 items-end">
               <div className="flex-1">
                 <label className="block text-sm font-medium mb-2">
-                  à¦¶à§à¦°à§à¦° à¦¤à¦¾à¦°à¦¿à¦–
+                  শুরুর তারিখ
                 </label>
                 <input
                   type="date"
@@ -324,7 +456,7 @@ export default async function LedgerSummaryPage({
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium mb-2">
-                  à¦¶à§‡à¦· à¦¤à¦¾à¦°à¦¿à¦–
+                  শেষ তারিখ
                 </label>
                 <input
                   type="date"
@@ -337,7 +469,7 @@ export default async function LedgerSummaryPage({
                 type="submit"
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                à¦¦à§‡à¦–à§à¦¨
+                দেখুন
               </button>
             </form>
           </CardContent>

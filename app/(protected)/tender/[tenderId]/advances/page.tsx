@@ -16,11 +16,12 @@ export default async function AdvancesListPage({
   const supabase = createClient();
 
   const { data: advances } = await supabase
-    .from("advances")
+    .from("person_advances")
     .select(
       `
       *,
-      person:profiles!advances_person_id_fkey (full_name)
+      user:profiles!person_advances_user_id_fkey (full_name),
+      person:persons!person_advances_person_id_fkey (full_name)
     `
     )
     .eq("tender_id", params.tenderId)
@@ -148,7 +149,9 @@ export default async function AdvancesListPage({
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg mb-1">
-                          {advance.person?.full_name || "Unknown"}
+                          {advance.user?.full_name ||
+                            advance.person?.full_name ||
+                            "Unknown"}
                         </h3>
                         <div className="text-sm text-gray-600 space-y-1">
                           <p>{formatDate(advance.advance_date)}</p>
@@ -174,7 +177,7 @@ export default async function AdvancesListPage({
                         </div>
                         <EntryActions
                           entryId={advance.id}
-                          tableName="advances"
+                          tableName="person_advances"
                           editUrl={`/tender/${params.tenderId}/advances/edit/${advance.id}`}
                         />
                       </div>

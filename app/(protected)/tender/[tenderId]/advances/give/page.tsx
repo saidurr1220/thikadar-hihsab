@@ -216,23 +216,30 @@ export default function GiveAdvancePage({
         return;
       }
 
-      const isAuthUser = formData.personType === "user";
-      const { error: insertError } = await supabase.from("advances").insert({
-        tender_id: params.tenderId,
-        advance_date: formData.advanceDate,
-        user_id: isAuthUser ? formData.personId : null,
-        person_id: !isAuthUser ? formData.personId : null,
-        amount: parseFloat(formData.amount),
-        payment_ref: formData.reference || null,
-        purpose: formData.purpose,
-        notes: formData.notes || null,
-        given_by: user.id,
-      });
+      // Only insert if amount is greater than 0
+      const amount = parseFloat(formData.amount);
+      if (amount > 0) {
+        const isAuthUser = formData.personType === "user";
+        const { error: insertError } = await supabase
+          .from("person_advances")
+          .insert({
+            tender_id: params.tenderId,
+            advance_date: formData.advanceDate,
+            user_id: isAuthUser ? formData.personId : null,
+            person_id: !isAuthUser ? formData.personId : null,
+            amount: amount,
+            payment_method: formData.method,
+            payment_ref: formData.reference || null,
+            purpose: formData.purpose || "অগ্রিম প্রদান",
+            notes: formData.notes || null,
+            created_by: user.id,
+          });
 
-      if (insertError) {
-        setError(insertError.message);
-        setLoading(false);
-        return;
+        if (insertError) {
+          setError(insertError.message);
+          setLoading(false);
+          return;
+        }
       }
 
       router.push(`/tender/${params.tenderId}/advances`);
@@ -357,7 +364,10 @@ export default function GiveAdvancePage({
                 >
                   <option value="">নির্বাচন করুন</option>
                   {users.map((u) => (
-                    <option key={`${u.type}:${u.id}`} value={`${u.type}:${u.id}`}>
+                    <option
+                      key={`${u.type}:${u.id}`}
+                      value={`${u.type}:${u.id}`}
+                    >
                       {u.name} ({u.role})
                     </option>
                   ))}
@@ -386,57 +396,63 @@ export default function GiveAdvancePage({
               </div>
 
               <div>
-                <Label htmlFor="amount">{labels.amount} *</Label>
+                <Label htmlFor="amount">
+                  {labels.amount} (ঐচ্ছিক - ০ দিলে শুধু ব্যক্তি যোগ হবে)
+                </Label>
                 <Input
                   id="amount"
                   name="amount"
                   type="number"
                   step="0.01"
+                  min="0"
                   value={formData.amount}
                   onChange={handleChange}
-                  required
+                  placeholder="0"
                   disabled={loading}
                 />
               </div>
 
-              <div>
-                <Label htmlFor="method">পদ্ধতি *</Label>
-                <select
-                  id="method"
-                  name="method"
-                  value={formData.method}
-                  onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-                  required
-                  disabled={loading}
-                >
-                  <option value="cash">{labels.cash}</option>
-                  <option value="bank">{labels.bank}</option>
-                  <option value="mfs">{labels.mfs}</option>
-                </select>
-              </div>
+              {parseFloat(formData.amount || "0") > 0 && (
+                <>
+                  <div>
+                    <Label htmlFor="method">পদ্ধতি *</Label>
+                    <select
+                      id="method"
+                      name="method"
+                      value={formData.method}
+                      onChange={handleChange}
+                      className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                      required
+                      disabled={loading}
+                    >
+                      <option value="cash">{labels.cash}</option>
+                      <option value="bank">{labels.bank}</option>
+                      <option value="mfs">{labels.mfs}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="reference">রেফারেন্স</Label>
+                    <Input
+                      id="reference"
+                      name="reference"
+                      value={formData.reference}
+                      onChange={handleChange}
+                      placeholder="TXN123456"
+                      disabled={loading}
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
-                <Label htmlFor="reference">রেফারেন্স</Label>
-                <Input
-                  id="reference"
-                  name="reference"
-                  value={formData.reference}
-                  onChange={handleChange}
-                  placeholder="TXN123456"
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="purpose">{labels.purpose} *</Label>
+                <Label htmlFor="purpose">{labels.purpose}</Label>
                 <Input
                   id="purpose"
                   name="purpose"
                   value={formData.purpose}
                   onChange={handleChange}
-                  placeholder="সাইট খরচের জন্য"
-                  required
+                  placeholder="সাইট খরচের জন্য / ব্যক্তি যোগ করা"
                   disabled={loading}
                 />
               </div>

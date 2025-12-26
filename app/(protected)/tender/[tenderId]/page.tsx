@@ -87,9 +87,9 @@ export default async function TenderDashboardPage({
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(254,243,199,0.6),rgba(255,255,255,0))]">
       <div className="bg-gradient-to-br from-amber-50 via-white to-slate-50">
         <header className="border-b border-slate-200/70 bg-white/70 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:pl-8 pl-20">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div className="space-y-2">
+              <div className="space-y-2 text-center lg:text-left">
                 <Link
                   href="/dashboard"
                   className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
@@ -175,7 +175,9 @@ export default async function TenderDashboardPage({
                 </p>
                 <p className="text-sm text-slate-500 mt-1">
                   {grandTotal > 0
-                    ? `${((materialsTotal / grandTotal) * 100).toFixed(1)}% share`
+                    ? `${((materialsTotal / grandTotal) * 100).toFixed(
+                        1
+                      )}% share`
                     : "0% share"}
                 </p>
               </CardContent>
@@ -193,7 +195,9 @@ export default async function TenderDashboardPage({
                 </p>
                 <p className="text-sm text-slate-500 mt-1">
                   {grandTotal > 0
-                    ? `${((activitiesTotal / grandTotal) * 100).toFixed(1)}% share`
+                    ? `${((activitiesTotal / grandTotal) * 100).toFixed(
+                        1
+                      )}% share`
                     : "0% share"}
                 </p>
               </CardContent>

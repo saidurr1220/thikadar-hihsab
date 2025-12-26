@@ -13,9 +13,71 @@ export default async function PeopleAdvanceHubPage({
 }) {
   const supabase = createClient();
 
-  const { data: balances } = await supabase.rpc("get_person_balances", {
-    p_tender_id: params.tenderId,
+  // Get all person advances for this tender
+  const { data: personAdvances } = await supabase
+    .from("person_advances")
+    .select(`
+      *,
+      person:persons!person_advances_person_id_fkey (id, full_name, role)
+    `)
+    .eq("tender_id", params.tenderId)
+    .order("advance_date", { ascending: false });
+
+  // Get all person expenses for this tender
+  const { data: personExpenses } = await supabase
+    .from("person_expenses")
+    .select(`
+      *,
+      person:persons!person_expenses_person_id_fkey (id, full_name, role)
+    `)
+    .eq("tender_id", params.tenderId);
+
+  // Calculate balances per person
+  const balanceMap = new Map();
+
+  personAdvances?.forEach((adv: any) => {
+    const personId = adv.person_id;
+    const personName = adv.person?.full_name || "Unknown";
+    const role = adv.person?.role || "";
+    
+    if (!balanceMap.has(personId)) {
+      balanceMap.set(personId, {
+        person_id: personId,
+        person_name: personName,
+        role: role,
+        total_advances: 0,
+        total_expenses: 0,
+        balance: 0,
+      });
+    }
+    
+    const balance = balanceMap.get(personId);
+    balance.total_advances += Number(adv.amount || 0);
+    balance.balance += Number(adv.amount || 0);
   });
+
+  personExpenses?.forEach((exp: any) => {
+    const personId = exp.person_id;
+    const personName = exp.person?.full_name || "Unknown";
+    const role = exp.person?.role || "";
+    
+    if (!balanceMap.has(personId)) {
+      balanceMap.set(personId, {
+        person_id: personId,
+        person_name: personName,
+        role: role,
+        total_advances: 0,
+        total_expenses: 0,
+        balance: 0,
+      });
+    }
+    
+    const balance = balanceMap.get(personId);
+    balance.total_expenses += Number(exp.amount || 0);
+    balance.balance -= Number(exp.amount || 0);
+  });
+
+  const balances = Array.from(balanceMap.values());
 
   const totalAdvances =
     balances?.reduce(

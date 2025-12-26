@@ -34,7 +34,7 @@ export default function EditAdvancePage({
     try {
       const supabase = createClient();
       const { data, error } = await supabase
-        .from("advances")
+        .from("person_advances")
         .select("*")
         .eq("id", params.advanceId)
         .single();
@@ -65,7 +65,7 @@ export default function EditAdvancePage({
       const supabase = createClient();
 
       const { error } = await supabase
-        .from("advances")
+        .from("person_advances")
         .update({
           advance_date: advanceDate,
           amount: parseFloat(amount),
