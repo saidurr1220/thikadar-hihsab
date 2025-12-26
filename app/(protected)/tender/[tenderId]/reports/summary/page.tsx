@@ -215,6 +215,13 @@ export default function TenderSummaryPage({
       console.log("Calculated balances:", calculatedBalances);
       
       setBalances(calculatedBalances);
+
+      setLoading(false);
+    };
+
+    loadData();
+  }, [params.tenderId]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
@@ -594,9 +601,8 @@ export default function TenderSummaryPage({
             )}
           </div>
         </div>
-      </div>
 
-      <style jsx global>{`
+        <style jsx global>{`
         @media print {
           body {
             background: white !important;
@@ -765,6 +771,7 @@ export default function TenderSummaryPage({
           }
         }
       `}</style>
+      </div>
     </div>
   );
 }
