@@ -147,28 +147,74 @@ export default function TenderSummaryPage({
         .eq("tender_id", params.tenderId);
       setRollupExpenses(rollupData || []);
 
-      // Person balances
-      const { data: balancesData, error: balanceError } = await supabase.rpc(
-        "get_person_balances",
-        {
-          p_tender_id: params.tenderId,
+      // Person balances - Calculate manually instead of using RPC
+      const { data: personAdvancesData } = await supabase
+        .from("person_advances")
+        .select(`
+          *,
+          user:profiles!person_advances_user_id_fkey (full_name),
+          person:persons!person_advances_person_id_fkey (full_name, role)
+        `)
+        .eq("tender_id", params.tenderId);
+
+      const { data: personExpensesData } = await supabase
+        .from("person_expenses")
+        .select(`
+          *,
+          user:profiles!person_expenses_user_id_fkey (full_name),
+          person:persons!person_expenses_person_id_fkey (full_name, role)
+        `)
+        .eq("tender_id", params.tenderId);
+
+      // Calculate person-wise summary manually
+      const personBalanceMap = new Map();
+      
+      personAdvancesData?.forEach((adv: any) => {
+        const personId = adv.user_id || adv.person_id;
+        const personName = adv.user?.full_name || adv.person?.full_name || "Unknown";
+        const role = adv.person?.role || "staff";
+        
+        if (!personBalanceMap.has(personId)) {
+          personBalanceMap.set(personId, {
+            person_id: personId,
+            person_name: personName,
+            role: role,
+            total_advances: 0,
+            total_expenses: 0,
+            balance: 0
+          });
         }
-      );
+        
+        const balance = personBalanceMap.get(personId);
+        balance.total_advances += Number(adv.amount || 0);
+        balance.balance += Number(adv.amount || 0);
+      });
 
-      if (balanceError) {
-        console.error("Error loading balances:", balanceError);
-      } else {
-        console.log("Balances loaded:", balancesData);
-      }
+      personExpensesData?.forEach((exp: any) => {
+        const personId = exp.user_id || exp.person_id;
+        const personName = exp.user?.full_name || exp.person?.full_name || "Unknown";
+        const role = exp.person?.role || "staff";
+        
+        if (!personBalanceMap.has(personId)) {
+          personBalanceMap.set(personId, {
+            person_id: personId,
+            person_name: personName,
+            role: role,
+            total_advances: 0,
+            total_expenses: 0,
+            balance: 0
+          });
+        }
+        
+        const balance = personBalanceMap.get(personId);
+        balance.total_expenses += Number(exp.amount || 0);
+        balance.balance -= Number(exp.amount || 0);
+      });
 
-      setBalances(balancesData || []);
-
-      setLoading(false);
-    };
-
-    loadData();
-  }, [params.tenderId]);
-
+      const calculatedBalances = Array.from(personBalanceMap.values());
+      console.log("Calculated balances:", calculatedBalances);
+      
+      setBalances(calculatedBalances);
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
