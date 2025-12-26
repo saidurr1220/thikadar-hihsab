@@ -63,14 +63,14 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 1cm 0.8cm;
+    margin: 0.8cm 0.7cm;
   }
 
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
-    font-size: 9pt;
-    line-height: 1.2;
+    font-size: 8pt;
+    line-height: 1.1;
   }
 
   .no-print {
@@ -109,46 +109,46 @@
   }
 
   .mb-8, .mb-6 {
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.3rem !important;
   }
 
   .py-8 {
-    padding-top: 0.3rem !important;
-    padding-bottom: 0.3rem !important;
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
   }
 
   /* Font sizes - compact for fitting on one page */
   h1 {
-    font-size: 14pt !important;
-    margin-bottom: 0.2rem !important;
+    font-size: 12pt !important;
+    margin-bottom: 0.15rem !important;
   }
 
   h2, .text-3xl {
-    font-size: 12pt !important;
-  }
-
-  .text-4xl {
-    font-size: 16pt !important;
-  }
-
-  .text-2xl {
-    font-size: 11pt !important;
-  }
-
-  .text-xl {
     font-size: 10pt !important;
   }
 
-  .text-base {
+  .text-4xl {
+    font-size: 14pt !important;
+  }
+
+  .text-2xl {
     font-size: 9pt !important;
   }
 
-  .text-sm {
+  .text-xl {
+    font-size: 9pt !important;
+  }
+
+  .text-base {
     font-size: 8pt !important;
   }
 
-  .text-xs {
+  .text-sm {
     font-size: 7pt !important;
+  }
+
+  .text-xs {
+    font-size: 6pt !important;
   }
 
   /* Table styling */
