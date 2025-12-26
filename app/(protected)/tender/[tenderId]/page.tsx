@@ -255,10 +255,10 @@ export default async function TenderDashboardPage({
                       Add labor
                     </Button>
                   </Link>
-                  <Link href={`/tender/${params.tenderId}/materials/add`}>
+                  <Link href={`/tender/${params.tenderId}/purchases/add`}>
                     <Button variant="outline" className="w-full gap-2">
                       <Package className="h-4 w-4" />
-                      Add materials
+                      Add purchase
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/activities/add`}>
@@ -273,10 +273,10 @@ export default async function TenderDashboardPage({
                       Staff advances
                     </Button>
                   </Link>
-                  <Link href={`/tender/${params.tenderId}/expenses/vendors`}>
+                  <Link href={`/tender/${params.tenderId}/purchases`}>
                     <Button variant="outline" className="w-full gap-2">
                       <Truck className="h-4 w-4" />
-                      Vendor expenses
+                      Purchases
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/expenses/overview`}>
@@ -329,17 +329,17 @@ export default async function TenderDashboardPage({
               </Card>
             </Link>
 
-            <Link href={`/tender/${params.tenderId}/materials`}>
+            <Link href={`/tender/${params.tenderId}/purchases`}>
               <Card className="group cursor-pointer bg-white/80 border-slate-200/70 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-slate-900">
                     <Package className="h-5 w-5 text-sky-500" />
-                    Materials register
+                    Purchases & Vendors
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-slate-500">
-                    Purchase logs, suppliers, and quantity breakdowns.
+                    Unified purchase management with vendor profiles and transactions.
                   </p>
                 </CardContent>
               </Card>
@@ -372,22 +372,6 @@ export default async function TenderDashboardPage({
                 <CardContent>
                   <p className="text-sm text-slate-500">
                     Split view of staff advances and expenses.
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href={`/tender/${params.tenderId}/expenses/vendors`}>
-              <Card className="group cursor-pointer bg-white/80 border-slate-200/70 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
-                    <Truck className="h-5 w-5 text-orange-500" />
-                    Vendor expenses
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-500">
-                    Vendor purchases, payments, and balances.
                   </p>
                 </CardContent>
               </Card>
