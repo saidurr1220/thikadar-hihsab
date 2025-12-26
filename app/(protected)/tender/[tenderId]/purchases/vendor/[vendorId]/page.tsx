@@ -14,6 +14,8 @@ import {
   Calendar,
   Plus,
   DollarSign,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +33,7 @@ interface Transaction {
   amount: number;
   payment_method?: string;
   notes?: string;
+  source?: "vendor_purchase" | "material_purchase" | "payment";
 }
 
 export default function VendorDetailPage({
@@ -109,6 +112,8 @@ export default function VendorDetailPage({
         unit: vp.unit,
         amount: Number(vp.total_amount || 0),
         notes: vp.notes,
+        payment_method: vp.payment_method,
+        source: "vendor_purchase",
       });
     });
 
@@ -123,10 +128,16 @@ export default function VendorDetailPage({
         amount: Number(mp.total_amount || 0),
         payment_method: mp.payment_method,
         notes: mp.notes,
+        source: "material_purchase",
       });
     });
 
     payments?.forEach((p) => {
+      // Skip auto-generated payments (to avoid duplicate lines)
+      if (p.notes && (p.notes.includes('Auto payment for') || p.notes.includes('auto payment'))) {
+        return;
+      }
+      
       allTransactions.push({
         id: p.id,
         date: p.payment_date,
@@ -134,6 +145,7 @@ export default function VendorDetailPage({
         amount: Number(p.amount || 0),
         payment_method: p.payment_method,
         notes: p.notes,
+        source: "payment",
       });
     });
 
@@ -144,8 +156,14 @@ export default function VendorDetailPage({
 
     // Calculate stats
     const totalPurchases =
-      (vendorPurchases?.reduce((sum, p) => sum + Number(p.total_amount || 0), 0) || 0) +
-      (materialPurchases?.reduce((sum, p) => sum + Number(p.total_amount || 0), 0) || 0);
+      (vendorPurchases?.reduce(
+        (sum, p) => sum + Number(p.total_amount || 0),
+        0
+      ) || 0) +
+      (materialPurchases?.reduce(
+        (sum, p) => sum + Number(p.total_amount || 0),
+        0
+      ) || 0);
 
     const totalPaid =
       payments?.reduce((sum, p) => sum + Number(p.amount || 0), 0) || 0;
@@ -156,7 +174,8 @@ export default function VendorDetailPage({
       totalPurchases,
       totalPaid,
       balance: totalPurchases - totalPaid,
-      purchaseCount: (vendorPurchases?.length || 0) + (materialPurchases?.length || 0),
+      purchaseCount:
+        (vendorPurchases?.length || 0) + (materialPurchases?.length || 0),
       paymentCount: payments?.length || 0,
     });
     setLoading(false);
@@ -197,6 +216,53 @@ export default function VendorDetailPage({
       alert("Error: " + err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (txn: Transaction) => {
+    if (!confirm(`Delete this ${txn.type}? This cannot be undone.`)) return;
+
+    try {
+      const supabase = createClient();
+      let error;
+
+      if (txn.type === "payment") {
+        const result = await supabase
+          .from("vendor_payments")
+          .delete()
+          .eq("id", txn.id);
+        error = result.error;
+      } else {
+        // Delete purchase
+        if (txn.source === "vendor_purchase") {
+          const result = await supabase
+            .from("vendor_purchases")
+            .delete()
+            .eq("id", txn.id);
+          error = result.error;
+        } else if (txn.source === "material_purchase") {
+          const result = await supabase
+            .from("material_purchases")
+            .delete()
+            .eq("id", txn.id);
+          error = result.error;
+        }
+      }
+
+      if (error) throw error;
+
+      loadData();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const handleEditTransaction = (txn: Transaction) => {
+    // Redirect to appropriate edit page
+    if (txn.source === "vendor_purchase") {
+      router.push(`/tender/${params.tenderId}/expenses/vendors/${params.vendorId}?edit=${txn.id}`);
+    } else if (txn.source === "material_purchase") {
+      router.push(`/tender/${params.tenderId}/materials/edit/${txn.id}`);
     }
   };
 
@@ -254,7 +320,8 @@ export default function VendorDetailPage({
                 )}
                 {vendor.vendor_categories && (
                   <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                    {vendor.vendor_categories.name_bn || vendor.vendor_categories.name}
+                    {vendor.vendor_categories.name_bn ||
+                      vendor.vendor_categories.name}
                   </div>
                 )}
               </div>
@@ -263,7 +330,9 @@ export default function VendorDetailPage({
             <div className="flex gap-2">
               <Button
                 onClick={() =>
-                  router.push(`/tender/${params.tenderId}/purchases/add?vendor=${vendor.id}`)
+                  router.push(
+                    `/tender/${params.tenderId}/purchases/add?vendor=${vendor.id}`
+                  )
                 }
                 variant="outline"
                 className="gap-2"
@@ -295,7 +364,9 @@ export default function VendorDetailPage({
               <div className="text-2xl font-bold">
                 {formatCurrency(stats.totalPurchases)}
               </div>
-              <p className="text-xs opacity-80 mt-1">{stats.purchaseCount} transactions</p>
+              <p className="text-xs opacity-80 mt-1">
+                {stats.purchaseCount} transactions
+              </p>
             </CardContent>
           </Card>
 
@@ -310,7 +381,9 @@ export default function VendorDetailPage({
               <div className="text-2xl font-bold">
                 {formatCurrency(stats.totalPaid)}
               </div>
-              <p className="text-xs opacity-80 mt-1">{stats.paymentCount} payments</p>
+              <p className="text-xs opacity-80 mt-1">
+                {stats.paymentCount} payments
+              </p>
             </CardContent>
           </Card>
 
@@ -354,7 +427,10 @@ export default function VendorDetailPage({
                   style={{
                     width: `${
                       stats.totalPurchases > 0
-                        ? Math.min((stats.totalPaid / stats.totalPurchases) * 100, 100)
+                        ? Math.min(
+                            (stats.totalPaid / stats.totalPurchases) * 100,
+                            100
+                          )
                         : 0
                     }%`,
                   }}
@@ -383,7 +459,10 @@ export default function VendorDetailPage({
                       type="date"
                       value={paymentData.paymentDate}
                       onChange={(e) =>
-                        setPaymentData({ ...paymentData, paymentDate: e.target.value })
+                        setPaymentData({
+                          ...paymentData,
+                          paymentDate: e.target.value,
+                        })
                       }
                       required
                     />
@@ -396,7 +475,10 @@ export default function VendorDetailPage({
                       step="0.01"
                       value={paymentData.amount}
                       onChange={(e) =>
-                        setPaymentData({ ...paymentData, amount: e.target.value })
+                        setPaymentData({
+                          ...paymentData,
+                          amount: e.target.value,
+                        })
                       }
                       placeholder="0.00"
                       required
@@ -411,7 +493,10 @@ export default function VendorDetailPage({
                       id="paymentMethod"
                       value={paymentData.paymentMethod}
                       onChange={(e) =>
-                        setPaymentData({ ...paymentData, paymentMethod: e.target.value })
+                        setPaymentData({
+                          ...paymentData,
+                          paymentMethod: e.target.value,
+                        })
                       }
                       className="w-full px-3 py-2 border rounded-md"
                     >
@@ -427,7 +512,10 @@ export default function VendorDetailPage({
                       id="reference"
                       value={paymentData.reference}
                       onChange={(e) =>
-                        setPaymentData({ ...paymentData, reference: e.target.value })
+                        setPaymentData({
+                          ...paymentData,
+                          reference: e.target.value,
+                        })
                       }
                       placeholder="Optional"
                     />
@@ -501,12 +589,18 @@ export default function VendorDetailPage({
                     <th className="px-4 py-3 text-right text-xs font-medium text-slate-600 uppercase">
                       Balance
                     </th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-slate-600 uppercase">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {transactions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                      <td
+                        colSpan={7}
+                        className="px-4 py-8 text-center text-slate-500"
+                      >
                         No transactions yet
                       </td>
                     </tr>
@@ -514,9 +608,17 @@ export default function VendorDetailPage({
                     (() => {
                       let runningBalance = 0;
                       return transactions.map((txn) => {
+                        // For purchases, check if they were paid immediately (cash/bank)
                         if (txn.type === "purchase") {
-                          runningBalance += txn.amount;
+                          // If payment method is cash or bank, it's already paid (no balance change)
+                          if (txn.payment_method === "cash" || txn.payment_method === "bank") {
+                            // Purchase was paid immediately, so no due amount
+                          } else {
+                            // Due payment - add to balance
+                            runningBalance += txn.amount;
+                          }
                         } else {
+                          // Manual payment - subtract from balance
                           runningBalance -= txn.amount;
                         }
 
@@ -533,17 +635,23 @@ export default function VendorDetailPage({
                                     : "bg-green-100 text-green-800"
                                 }`}
                               >
-                                {txn.type === "purchase" ? "Purchase" : "Payment"}
+                                {txn.type === "purchase"
+                                  ? "Purchase"
+                                  : "Payment"}
                               </span>
                             </td>
                             <td className="px-4 py-3 text-sm text-slate-900">
                               {txn.item_name || "-"}
                               {txn.notes && (
-                                <p className="text-xs text-slate-500 mt-1">{txn.notes}</p>
+                                <p className="text-xs text-slate-500 mt-1">
+                                  {txn.notes}
+                                </p>
                               )}
                             </td>
                             <td className="px-4 py-3 text-sm text-slate-600">
-                              {txn.quantity ? `${txn.quantity} ${txn.unit}` : "-"}
+                              {txn.quantity
+                                ? `${txn.quantity} ${txn.unit}`
+                                : "-"}
                             </td>
                             <td
                               className={`px-4 py-3 text-sm font-medium text-right ${
@@ -565,7 +673,33 @@ export default function VendorDetailPage({
                               }`}
                             >
                               {formatCurrency(Math.abs(runningBalance))}
-                              {runningBalance > 0 ? " due" : runningBalance < 0 ? " overpaid" : ""}
+                              {runningBalance > 0
+                                ? " due"
+                                : runningBalance < 0
+                                ? " overpaid"
+                                : ""}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                {txn.type === "purchase" && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditTransaction(txn)}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteTransaction(txn)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         );

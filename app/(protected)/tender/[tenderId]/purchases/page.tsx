@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Search, 
+import {
+  ArrowLeft,
+  Plus,
+  Search,
   Filter,
   TrendingUp,
   Users,
@@ -15,7 +15,7 @@ import {
   AlertCircle,
   Edit,
   Trash2,
-  Eye
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,10 +54,14 @@ export default function PurchasesPage({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"purchases" | "vendors">("purchases");
+  const [activeTab, setActiveTab] = useState<"purchases" | "vendors">(
+    "purchases"
+  );
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "material" | "vendor">("all");
-  
+  const [filterType, setFilterType] = useState<"all" | "material" | "vendor">(
+    "all"
+  );
+
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [stats, setStats] = useState({
@@ -68,45 +72,64 @@ export default function PurchasesPage({
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    console.log("useEffect running with tenderId:", params.tenderId);
+    if (params.tenderId) {
+      loadData();
+    }
+  }, [params.tenderId]);
 
   const loadData = async () => {
     setLoading(true);
     const supabase = createClient();
 
     // Load vendors with aggregated data
-    const { data: vendorData } = await supabase
+    const { data: vendorData, error: vendorError } = await supabase
       .from("vendors")
       .select("*")
-      .eq("tender_id", params.tenderId)
-      .eq("is_active", true);
+      .eq("tender_id", params.tenderId);
+
+    console.log("Vendors loaded:", vendorData?.length || 0, vendorData);
+    if (vendorError) console.error("Vendor error:", vendorError);
 
     // Load vendor purchases
-    const { data: vendorPurchases } = await supabase
+    const { data: vendorPurchases, error: vpError } = await supabase
       .from("vendor_purchases")
-      .select(`
+      .select(
+        `
         *,
         vendor:vendors(id, name, phone)
-      `)
+      `
+      )
       .eq("tender_id", params.tenderId)
       .order("purchase_date", { ascending: false });
+
+    console.log("Vendor purchases:", vendorPurchases?.length || 0);
+    console.log("Sample vendor purchase:", vendorPurchases?.[0]);
+    if (vpError) console.error("VP error:", vpError);
 
     // Load material purchases
-    const { data: materialPurchases } = await supabase
+    const { data: materialPurchases, error: mpError } = await supabase
       .from("material_purchases")
-      .select(`
+      .select(
+        `
         *,
         material:materials(name_bn)
-      `)
+      `
+      )
       .eq("tender_id", params.tenderId)
       .order("purchase_date", { ascending: false });
 
+    console.log("Material purchases:", materialPurchases?.length || 0);
+    if (mpError) console.error("MP error:", mpError);
+
     // Load vendor payments
-    const { data: payments } = await supabase
+    const { data: payments, error: payError } = await supabase
       .from("vendor_payments")
-      .select("vendor_id, amount")
+      .select("*")
       .eq("tender_id", params.tenderId);
+
+    console.log("Payments:", payments?.length || 0);
+    if (payError) console.error("Payment error:", payError);
 
     // Process vendors
     const vendorMap = new Map<string, Vendor>();
@@ -124,26 +147,80 @@ export default function PurchasesPage({
       });
     });
 
-    // Aggregate vendor purchases
+    // Aggregate vendor purchases and create vendors from purchase data if not exists
     vendorPurchases?.forEach((vp: any) => {
+      if (!vendorMap.has(vp.vendor_id) && vp.vendor) {
+        // Create vendor from purchase data if not in vendors table
+        console.log(
+          "Creating vendor from purchase:",
+          vp.vendor.name,
+          vp.vendor_id
+        );
+        vendorMap.set(vp.vendor_id, {
+          id: vp.vendor_id,
+          name: vp.vendor.name || "Unknown Vendor",
+          phone: vp.vendor.phone,
+          category_id: null,
+          total_purchases: 0,
+          total_paid: 0,
+          due_amount: 0,
+          last_purchase_date: null,
+          purchase_count: 0,
+        });
+      }
+
       const vendor = vendorMap.get(vp.vendor_id);
       if (vendor) {
-        vendor.total_purchases += Number(vp.total_amount || 0);
+        const amount = Number(vp.total_cost || 0);
+        console.log(
+          `Adding purchase to ${vendor.name}: ${amount} (before: ${vendor.total_purchases})`
+        );
+        vendor.total_purchases += amount;
         vendor.purchase_count += 1;
-        if (!vendor.last_purchase_date || vp.purchase_date > vendor.last_purchase_date) {
+        if (
+          !vendor.last_purchase_date ||
+          vp.purchase_date > vendor.last_purchase_date
+        ) {
           vendor.last_purchase_date = vp.purchase_date;
         }
+      } else {
+        console.log("Vendor not found for purchase:", vp.vendor_id, vp);
       }
     });
 
     // Aggregate material purchases
+    // Note: material_purchases table needs vendor_id column migration
     materialPurchases?.forEach((mp) => {
       if (mp.vendor_id) {
+        // Create vendor from material purchase if not exists
+        if (!vendorMap.has(mp.vendor_id)) {
+          // Get vendor info from vendors table or vendorData
+          const vendorInfo = vendorData?.find((v) => v.id === mp.vendor_id);
+          if (vendorInfo) {
+            vendorMap.set(mp.vendor_id, {
+              id: vendorInfo.id,
+              name: vendorInfo.name,
+              phone: vendorInfo.phone,
+              category_id: vendorInfo.category_id,
+              total_purchases: 0,
+              total_paid: 0,
+              due_amount: 0,
+              last_purchase_date: null,
+              purchase_count: 0,
+            });
+          }
+        }
+
         const vendor = vendorMap.get(mp.vendor_id);
         if (vendor) {
-          vendor.total_purchases += Number(mp.total_amount || 0);
+          const amount = Number(mp.total_amount || 0);
+          console.log(`Adding material purchase to ${vendor.name}: ${amount}`);
+          vendor.total_purchases += amount;
           vendor.purchase_count += 1;
-          if (!vendor.last_purchase_date || mp.purchase_date > vendor.last_purchase_date) {
+          if (
+            !vendor.last_purchase_date ||
+            mp.purchase_date > vendor.last_purchase_date
+          ) {
             vendor.last_purchase_date = mp.purchase_date;
           }
         }
@@ -154,7 +231,13 @@ export default function PurchasesPage({
     payments?.forEach((p) => {
       const vendor = vendorMap.get(p.vendor_id);
       if (vendor) {
-        vendor.total_paid += Number(p.amount || 0);
+        const amount = Number(p.amount || 0);
+        console.log(
+          `Adding payment to ${vendor.name}: ${amount} (before: ${vendor.total_paid})`
+        );
+        vendor.total_paid += amount;
+      } else {
+        console.log("Vendor not found for payment:", p.vendor_id, p);
       }
     });
 
@@ -167,6 +250,19 @@ export default function PurchasesPage({
     const allPurchases: Purchase[] = [];
 
     vendorPurchases?.forEach((vp: any) => {
+      // Calculate payment status based on vendor's overall balance
+      const vendor = vendorMap.get(vp.vendor_id);
+      let paymentStatus: "paid" | "due" | "partial" = "due";
+
+      if (vendor) {
+        const balance = vendor.due_amount;
+        if (balance <= 0) {
+          paymentStatus = "paid"; // Vendor has no due or overpaid
+        } else if (vendor.total_paid > 0) {
+          paymentStatus = "partial"; // Some payment made but still has balance
+        }
+      }
+
       allPurchases.push({
         id: vp.id,
         date: vp.purchase_date,
@@ -175,14 +271,35 @@ export default function PurchasesPage({
         item_name: vp.item_name || "Vendor Purchase",
         quantity: Number(vp.quantity || 0),
         unit: vp.unit || "",
-        amount: Number(vp.total_amount || 0),
+        amount: Number(vp.total_cost || 0),
         type: "vendor",
-        payment_status: "due", // Need to calculate based on payments
+        payment_status: paymentStatus,
       });
     });
 
     materialPurchases?.forEach((mp) => {
-      const vendor = mp.vendor_id ? vendorData?.find((v) => v.id === mp.vendor_id) : null;
+      const vendor = mp.vendor_id
+        ? vendorData?.find((v) => v.id === mp.vendor_id)
+        : null;
+
+      // Calculate payment status
+      let paymentStatus: "paid" | "due" | "partial" = "due";
+
+      if (mp.vendor_id) {
+        const vendorInfo = vendorMap.get(mp.vendor_id);
+        if (vendorInfo) {
+          const balance = vendorInfo.due_amount;
+          if (balance <= 0) {
+            paymentStatus = "paid"; // Vendor has no due or overpaid
+          } else if (vendorInfo.total_paid > 0) {
+            paymentStatus = "partial"; // Some payment made but still has balance
+          }
+        }
+      } else {
+        // No vendor = direct purchase, check payment_method
+        paymentStatus = mp.payment_method === "cash" ? "paid" : "due";
+      }
+
       allPurchases.push({
         id: mp.id,
         date: mp.purchase_date,
@@ -193,12 +310,14 @@ export default function PurchasesPage({
         unit: mp.unit || "",
         amount: Number(mp.total_amount || 0),
         type: "material",
-        payment_status: mp.payment_method === "cash" ? "paid" : "due",
+        payment_status: paymentStatus,
       });
     });
 
     // Sort by date
-    allPurchases.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    allPurchases.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
     // Calculate stats
     const totalPurchases = allPurchases.reduce((sum, p) => sum + p.amount, 0);
@@ -207,7 +326,21 @@ export default function PurchasesPage({
       0
     );
 
-    setVendors(Array.from(vendorMap.values()));
+    const vendorList = Array.from(vendorMap.values());
+    console.log("Final vendors:", vendorList.length, vendorList);
+    vendorList.forEach((v) => {
+      console.log(
+        `Vendor ${v.name}: purchases=${v.total_purchases}, paid=${v.total_paid}, due=${v.due_amount}, count=${v.purchase_count}`
+      );
+    });
+    console.log("Final purchases:", allPurchases.length);
+    console.log("Stats:", {
+      totalPurchases,
+      totalPaid: totalPurchases - totalDue,
+      totalDue,
+    });
+
+    setVendors(vendorList);
     setPurchases(allPurchases);
     setStats({
       totalPurchases,
@@ -219,12 +352,11 @@ export default function PurchasesPage({
   };
 
   const filteredPurchases = purchases.filter((p) => {
-    const matchesSearch = 
+    const matchesSearch =
       p.vendor_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.item_name.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesType = 
-      filterType === "all" || p.type === filterType;
+
+    const matchesType = filterType === "all" || p.type === filterType;
 
     return matchesSearch && matchesType;
   });
@@ -256,7 +388,7 @@ export default function PurchasesPage({
             <ArrowLeft className="h-4 w-4" />
             Back to dashboard
           </Link>
-          
+
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-slate-900 mb-2">
@@ -266,9 +398,11 @@ export default function PurchasesPage({
                 Unified purchase management and vendor tracking
               </p>
             </div>
-            
+
             <Button
-              onClick={() => router.push(`/tender/${params.tenderId}/purchases/add`)}
+              onClick={() =>
+                router.push(`/tender/${params.tenderId}/purchases/add`)
+              }
               className="gap-2 bg-blue-600 hover:bg-blue-700"
             >
               <Plus className="h-4 w-4" />
@@ -438,7 +572,10 @@ export default function PurchasesPage({
                   <tbody className="bg-white divide-y divide-slate-200">
                     {filteredPurchases.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
+                        <td
+                          colSpan={8}
+                          className="px-4 py-8 text-center text-slate-500"
+                        >
                           No purchases found
                         </td>
                       </tr>
@@ -482,7 +619,9 @@ export default function PurchasesPage({
                                   : "bg-purple-100 text-purple-800"
                               }`}
                             >
-                              {purchase.type === "material" ? "Material" : "Vendor"}
+                              {purchase.type === "material"
+                                ? "Material"
+                                : "Vendor"}
                             </span>
                           </td>
                           <td className="px-4 py-3">
@@ -500,21 +639,24 @@ export default function PurchasesPage({
                           </td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  router.push(
-                                    `/tender/${params.tenderId}/${
-                                      purchase.type === "material"
-                                        ? "materials"
-                                        : "expenses/vendors"
-                                    }/edit/${purchase.id}`
-                                  )
-                                }
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                              {purchase.vendor_id ? (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    router.push(
+                                      `/tender/${params.tenderId}/purchases/vendor/${purchase.vendor_id}`
+                                    )
+                                  }
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-slate-400 px-2">
+                                  Direct
+                                </span>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -537,7 +679,9 @@ export default function PurchasesPage({
                   key={vendor.id}
                   className="hover:shadow-lg transition-shadow cursor-pointer group"
                   onClick={() =>
-                    router.push(`/tender/${params.tenderId}/purchases/vendor/${vendor.id}`)
+                    router.push(
+                      `/tender/${params.tenderId}/purchases/vendor/${vendor.id}`
+                    )
                   }
                 >
                   <CardHeader className="pb-3">
@@ -568,7 +712,9 @@ export default function PurchasesPage({
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-slate-600">Total Purchases:</span>
+                      <span className="text-sm text-slate-600">
+                        Total Purchases:
+                      </span>
                       <span className="text-sm font-semibold text-slate-900">
                         {formatCurrency(vendor.total_purchases)}
                       </span>
@@ -580,10 +726,16 @@ export default function PurchasesPage({
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                      <span className="text-sm font-medium text-slate-700">Due:</span>
-                      <span className={`text-sm font-bold ${
-                        vendor.due_amount > 0 ? "text-red-600" : "text-green-600"
-                      }`}>
+                      <span className="text-sm font-medium text-slate-700">
+                        Due:
+                      </span>
+                      <span
+                        className={`text-sm font-bold ${
+                          vendor.due_amount > 0
+                            ? "text-red-600"
+                            : "text-green-600"
+                        }`}
+                      >
                         {formatCurrency(vendor.due_amount)}
                       </span>
                     </div>
@@ -591,7 +743,9 @@ export default function PurchasesPage({
                       <div className="flex justify-between text-xs text-slate-500">
                         <span>{vendor.purchase_count} purchases</span>
                         {vendor.last_purchase_date && (
-                          <span>Last: {formatDate(vendor.last_purchase_date)}</span>
+                          <span>
+                            Last: {formatDate(vendor.last_purchase_date)}
+                          </span>
                         )}
                       </div>
                     </div>

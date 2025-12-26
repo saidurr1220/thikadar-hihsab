@@ -19,14 +19,16 @@ export default function AddPurchasePage({
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
-  
+
   const [vendors, setVendors] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  
-  const [purchaseType, setPurchaseType] = useState<"material" | "vendor">("material");
+
+  const [purchaseType, setPurchaseType] = useState<"material" | "vendor">(
+    "material"
+  );
   const [isNewVendor, setIsNewVendor] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     purchaseDate: new Date().toISOString().split("T")[0],
     vendorId: "",
@@ -79,18 +81,33 @@ export default function AddPurchasePage({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Auto-calculate total
-    if (name === "quantity" || name === "unitRate" || name === "transportCost" || name === "unloadCost") {
-      const qty = name === "quantity" ? parseFloat(value) : parseFloat(formData.quantity);
-      const rate = name === "unitRate" ? parseFloat(value) : parseFloat(formData.unitRate);
-      const transport = name === "transportCost" ? parseFloat(value || "0") : parseFloat(formData.transportCost || "0");
-      const unload = name === "unloadCost" ? parseFloat(value || "0") : parseFloat(formData.unloadCost || "0");
-      
+    if (
+      name === "quantity" ||
+      name === "unitRate" ||
+      name === "transportCost" ||
+      name === "unloadCost"
+    ) {
+      const qty =
+        name === "quantity" ? parseFloat(value) : parseFloat(formData.quantity);
+      const rate =
+        name === "unitRate" ? parseFloat(value) : parseFloat(formData.unitRate);
+      const transport =
+        name === "transportCost"
+          ? parseFloat(value || "0")
+          : parseFloat(formData.transportCost || "0");
+      const unload =
+        name === "unloadCost"
+          ? parseFloat(value || "0")
+          : parseFloat(formData.unloadCost || "0");
+
       if (!isNaN(qty) && !isNaN(rate)) {
         const baseAmount = qty * rate;
         const totalWithCosts = baseAmount + transport + unload;
@@ -145,7 +162,7 @@ export default function AddPurchasePage({
 
       if (purchaseType === "material") {
         // Create material purchase
-        const { error: purchaseError } = await supabase
+        const { error: purchaseError, data: purchaseData } = await supabase
           .from("material_purchases")
           .insert({
             tender_id: params.tenderId,
@@ -156,8 +173,12 @@ export default function AddPurchasePage({
             unit: formData.unit,
             unit_rate: parseFloat(formData.unitRate),
             total_amount: parseFloat(formData.totalAmount),
-            transport_vara_cost: formData.transportCost ? parseFloat(formData.transportCost) : null,
-            unload_cost: formData.unloadCost ? parseFloat(formData.unloadCost) : null,
+            transport_vara_cost: formData.transportCost
+              ? parseFloat(formData.transportCost)
+              : null,
+            unload_cost: formData.unloadCost
+              ? parseFloat(formData.unloadCost)
+              : null,
             vendor_id: vendorId || null,
             supplier: vendorId
               ? vendors.find((v) => v.id === vendorId)?.name
@@ -166,14 +187,41 @@ export default function AddPurchasePage({
             payment_ref: formData.paymentRef || null,
             notes: formData.notes || null,
             created_by: auth.user.id,
-          });
+          })
+          .select()
+          .single();
 
         if (purchaseError) throw purchaseError;
+
+        // Auto-create payment if vendor exists and payment method is cash or bank
+        if (
+          vendorId &&
+          (formData.paymentMethod === "cash" ||
+            formData.paymentMethod === "bank")
+        ) {
+          const { error: paymentError } = await supabase
+            .from("vendor_payments")
+            .insert({
+              tender_id: params.tenderId,
+              vendor_id: vendorId,
+              payment_date: formData.purchaseDate,
+              amount: parseFloat(formData.totalAmount),
+              payment_method: formData.paymentMethod,
+              payment_ref: formData.paymentRef || null,
+              notes: `Auto payment for material: ${
+                formData.customItemName || "Material purchase"
+              }`,
+              created_by: auth.user.id,
+            });
+
+          if (paymentError) throw paymentError;
+        }
       } else {
         // Create vendor purchase
-        if (!vendorId) throw new Error("Vendor is required for vendor purchases");
+        if (!vendorId)
+          throw new Error("Vendor is required for vendor purchases");
 
-        const { error: purchaseError } = await supabase
+        const { error: purchaseError, data: purchaseData } = await supabase
           .from("vendor_purchases")
           .insert({
             tender_id: params.tenderId,
@@ -184,13 +232,39 @@ export default function AddPurchasePage({
             unit: formData.unit,
             unit_price: parseFloat(formData.unitRate),
             total_amount: parseFloat(formData.totalAmount),
-            transport_vara_cost: formData.transportCost ? parseFloat(formData.transportCost) : null,
+            transport_vara_cost: formData.transportCost
+              ? parseFloat(formData.transportCost)
+              : null,
+            payment_method: formData.paymentMethod,
             payment_ref: formData.paymentRef || null,
             notes: formData.notes || null,
             created_by: auth.user.id,
-          });
+          })
+          .select()
+          .single();
 
         if (purchaseError) throw purchaseError;
+
+        // Auto-create payment if payment method is cash or bank
+        if (
+          formData.paymentMethod === "cash" ||
+          formData.paymentMethod === "bank"
+        ) {
+          const { error: paymentError } = await supabase
+            .from("vendor_payments")
+            .insert({
+              tender_id: params.tenderId,
+              vendor_id: vendorId,
+              payment_date: formData.purchaseDate,
+              amount: parseFloat(formData.totalAmount),
+              payment_method: formData.paymentMethod,
+              payment_ref: formData.paymentRef || null,
+              notes: `Auto payment for purchase: ${formData.customItemName}`,
+              created_by: auth.user.id,
+            });
+
+          if (paymentError) throw paymentError;
+        }
       }
 
       router.push(`/tender/${params.tenderId}/purchases`);
@@ -366,7 +440,9 @@ export default function AddPurchasePage({
                     onChange={handleChange}
                     className="w-full px-3 py-2 border rounded-md"
                   >
-                    <option value="">Select material or enter custom below</option>
+                    <option value="">
+                      Select material or enter custom below
+                    </option>
                     {materials.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.name_bn}
@@ -379,7 +455,9 @@ export default function AddPurchasePage({
               {(!formData.materialId || purchaseType === "vendor") && (
                 <div>
                   <Label htmlFor="customItemName">
-                    {purchaseType === "material" ? "Custom Item Name" : "Item Name *"}
+                    {purchaseType === "material"
+                      ? "Custom Item Name"
+                      : "Item Name *"}
                   </Label>
                   <Input
                     id="customItemName"

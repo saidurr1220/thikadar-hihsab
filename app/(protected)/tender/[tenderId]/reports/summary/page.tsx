@@ -604,11 +604,20 @@ export default function TenderSummaryPage({
 
         <style jsx global>{`
         @media print {
-          body {
-            background: white !important;
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           
-          .no-print {
+          body {
+            background: white !important;
+            font-size: 9pt !important;
+            line-height: 1.3 !important;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .no-print, nav, button, .sidebar, header, footer {
             display: none !important;
           }
           
@@ -621,18 +630,18 @@ export default function TenderSummaryPage({
           
           @page {
             size: A4 portrait;
-            margin: 0.8cm 0.7cm;
+            margin: 12mm 10mm;
           }
           
-          /* Page header - compact */
+          /* Header */
           .report-header {
-            display: block;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.5rem !important;
+            page-break-after: avoid;
           }
           
           .report-header h1 {
             font-size: 14pt !important;
-            margin-bottom: 0.1rem !important;
+            margin-bottom: 0.2rem !important;
           }
           
           .report-header h2 {
@@ -641,92 +650,104 @@ export default function TenderSummaryPage({
           }
           
           .report-header p {
-            font-size: 7pt !important;
-            margin: 0 !important;
+            font-size: 8pt !important;
+            margin: 0.1rem 0 !important;
           }
           
           .report-header .border-b-2 {
-            padding-bottom: 0.2rem !important;
-            margin-bottom: 0.3rem !important;
+            padding-bottom: 0.3rem !important;
+            margin-bottom: 0.4rem !important;
           }
           
           .report-header .grid {
-            margin-bottom: 0.3rem !important;
-            gap: 0.2rem !important;
+            margin-bottom: 0.4rem !important;
+            gap: 0.3rem !important;
           }
           
-          /* Compact sections */
+          /* Sections */
           .mb-6, .mb-4 {
-            margin-bottom: 0.3rem !important;
+            margin-bottom: 0.5rem !important;
           }
           
           h3 {
             font-size: 10pt !important;
-            margin-bottom: 0.2rem !important;
-            padding-bottom: 0.1rem !important;
+            margin-bottom: 0.3rem !important;
+            padding-bottom: 0.2rem !important;
+            page-break-after: avoid;
           }
           
-          /* Financial summary - compact */
+          /* Financial summary */
           .bg-blue-50 {
-            padding: 0.3rem !important;
-            margin-bottom: 0.3rem !important;
+            padding: 0.4rem !important;
+            margin-bottom: 0.4rem !important;
+            background-color: #eff6ff !important;
+            page-break-inside: avoid;
           }
           
           .bg-blue-50 p:first-child {
-            font-size: 18pt !important;
+            font-size: 16pt !important;
           }
           
           .bg-blue-50 p:last-child {
-            font-size: 8pt !important;
+            font-size: 9pt !important;
           }
           
-          /* Tables - very compact */
+          /* Tables */
           table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 0.2rem !important;
+            margin-bottom: 0.4rem !important;
+            font-size: 8pt !important;
           }
           
           thead tr {
             background-color: #f3f4f6 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            page-break-after: avoid;
           }
           
           th {
-            padding: 0.15rem 0.3rem !important;
-            font-size: 7pt !important;
+            padding: 0.2rem 0.3rem !important;
+            font-size: 8pt !important;
+            font-weight: 600;
+            border: 1px solid #e5e7eb;
           }
           
           td {
-            padding: 0.1rem 0.3rem !important;
-            font-size: 7pt !important;
-            line-height: 1.1 !important;
+            padding: 0.15rem 0.3rem !important;
+            font-size: 8pt !important;
+            line-height: 1.2 !important;
+            border: 1px solid #e5e7eb;
           }
           
-          tr {
+          tbody tr {
             page-break-inside: avoid;
           }
           
-          /* Card content compact */
-          .space-y-1 > * + * {
-            margin-top: 0.1rem !important;
+          tbody tr:nth-child(even) {
+            background-color: #fafafa !important;
           }
           
+          /* Lists */
           ul {
-            margin-top: 0.1rem !important;
+            margin: 0.2rem 0 !important;
+            padding-left: 1.2rem !important;
           }
           
           ul li {
-            font-size: 6pt !important;
+            font-size: 7pt !important;
+            line-height: 1.3 !important;
+            margin-bottom: 0.1rem !important;
           }
           
-          /* Top materials section - compact */
+          /* Grid */
           .grid-cols-2 {
-            gap: 0.3rem !important;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem !important;
+            page-break-inside: avoid;
           }
           
-          /* Prevent page breaks */
+          /* Page breaks */
           .page-break-inside-avoid {
             page-break-inside: avoid;
           }
@@ -735,39 +756,45 @@ export default function TenderSummaryPage({
             page-break-before: auto;
           }
           
-          /* Ensure colors print */
+          /* Colors */
           .text-green-700, .text-green-600 {
             color: #15803d !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
           }
           
           .text-red-700, .text-red-600 {
             color: #b91c1c !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+          }
+          
+          .text-blue-700, .text-blue-600 {
+            color: #1d4ed8 !important;
           }
           
           .bg-gray-50 {
-            background-color: #f8f9fa !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-            padding: 0.2rem 0.3rem !important;
+            background-color: #f9fafb !important;
+            padding: 0.3rem !important;
           }
           
-          /* Font sizes */
-          body {
-            font-size: 7pt !important;
-            line-height: 1.1 !important;
+          /* Spacing */
+          .space-y-1 > * + * {
+            margin-top: 0.2rem !important;
+          }
+          
+          /* Borders */
+          .border-b-2 {
+            border-bottom: 2px solid #1f2937 !important;
+          }
+          
+          .border-b {
+            border-bottom: 1px solid #d1d5db !important;
+          }
+          
+          /* Remove unnecessary styling for print */
+          * {
+            box-shadow: none !important;
           }
           
           .font-bold {
             font-weight: 600 !important;
-          }
-          
-          /* Hide elements that take too much space */
-          .page-break-before {
-            page-break-before: avoid !important;
           }
         }
       `}</style>

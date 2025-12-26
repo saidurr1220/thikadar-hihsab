@@ -23,6 +23,9 @@ export default function AddMaterialPage({
   const [people, setPeople] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [personKey, setPersonKey] = useState("");
+  const [showVendorForm, setShowVendorForm] = useState(false);
+  const [newVendorName, setNewVendorName] = useState("");
+  const [newVendorPhone, setNewVendorPhone] = useState("");
 
   const [formData, setFormData] = useState({
     purchaseDate: new Date().toISOString().split("T")[0],
@@ -70,7 +73,6 @@ export default function AddMaterialPage({
       .from("vendors")
       .select("id, name, phone")
       .eq("tender_id", params.tenderId)
-      .eq("is_active", true)
       .order("name");
 
     if (data) setVendors(data);
