@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, FileText, Plus } from "lucide-react";
+import { ArrowLeft, FileText, Plus, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ export default function VendorExpenseHubPage({
   >({});
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [adding, setAdding] = useState(false);
+  const [editingVendor, setEditingVendor] = useState<any>(null);
   const [newVendor, setNewVendor] = useState({
     name: "",
     phone: "",
@@ -112,6 +113,7 @@ export default function VendorExpenseHubPage({
       name: newVendor.name,
       phone: newVendor.phone || null,
       category_id: newVendor.categoryId || null,
+      tender_id: params.tenderId,
       created_by: userId,
     });
 
@@ -120,6 +122,55 @@ export default function VendorExpenseHubPage({
       setNewVendor({ name: "", phone: "", categoryId: "" });
       loadAll();
     }
+  };
+
+  const handleEdit = (vendor: any) => {
+    setEditingVendor(vendor);
+    setNewVendor({
+      name: vendor.name,
+      phone: vendor.phone || "",
+      categoryId: vendor.category_id || "",
+    });
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVendor || !newVendor.name) return;
+
+    setAdding(true);
+    const { error } = await supabase
+      .from("vendors")
+      .update({
+        name: newVendor.name,
+        phone: newVendor.phone || null,
+        category_id: newVendor.categoryId || null,
+      })
+      .eq("id", editingVendor.id);
+
+    setAdding(false);
+    if (!error) {
+      setEditingVendor(null);
+      setNewVendor({ name: "", phone: "", categoryId: "" });
+      loadAll();
+    }
+  };
+
+  const handleDelete = async (vendorId: string, vendorName: string) => {
+    if (!confirm(`Delete vendor "${vendorName}"? This will mark it as inactive.`)) return;
+
+    const { error } = await supabase
+      .from("vendors")
+      .update({ is_active: false })
+      .eq("id", vendorId);
+
+    if (!error) {
+      loadAll();
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingVendor(null);
+    setNewVendor({ name: "", phone: "", categoryId: "" });
   };
 
   return (
@@ -205,13 +256,13 @@ export default function VendorExpenseHubPage({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-slate-900">
                 <Plus className="h-4 w-4" />
-                Add vendor
+                {editingVendor ? "Edit vendor" : "Add vendor"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form
                 className="grid grid-cols-1 md:grid-cols-4 gap-4"
-                onSubmit={addVendor}
+                onSubmit={editingVendor ? handleUpdate : addVendor}
               >
                 <div className="md:col-span-2">
                   <Label htmlFor="vendorName">Name *</Label>
@@ -255,10 +306,24 @@ export default function VendorExpenseHubPage({
                     ))}
                   </select>
                 </div>
-                <div className="md:col-span-4">
+                <div className="md:col-span-4 flex gap-2">
                   <Button type="submit" disabled={adding}>
-                    {adding ? "Adding..." : "Add vendor"}
+                    {adding
+                      ? "Saving..."
+                      : editingVendor
+                      ? "Update vendor"
+                      : "Add vendor"}
                   </Button>
+                  {editingVendor && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={cancelEdit}
+                      disabled={adding}
+                    >
+                      Cancel
+                    </Button>
+                  )}
                 </div>
               </form>
             </CardContent>
@@ -304,32 +369,65 @@ export default function VendorExpenseHubPage({
                     const displayAmount = showPaid ? paid : balance;
 
                     return (
-                      <Link
+                      <div
                         key={v.id}
-                        href={`/tender/${params.tenderId}/expenses/vendors/${v.id}`}
-                        className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+                        className="border border-slate-200 rounded-lg p-4 bg-white group hover:shadow-md transition-shadow"
                       >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-semibold text-lg text-slate-900">
-                              {v.name}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              {categories.find((c) => c.id === v.category_id)
-                                ?.name_bn || "Other"}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p
-                              className={`text-lg font-bold ${
-                                showPaid ? "text-emerald-600" : "text-red-600"
-                              }`}
+                        <div className="flex justify-between items-start gap-2">
+                          <Link
+                            href={`/tender/${params.tenderId}/expenses/vendors/${v.id}`}
+                            className="flex-1"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="font-semibold text-lg text-slate-900">
+                                  {v.name}
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                  {categories.find(
+                                    (c) => c.id === v.category_id
+                                  )?.name_bn || "Other"}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p
+                                  className={`text-lg font-bold ${
+                                    showPaid
+                                      ? "text-emerald-600"
+                                      : "text-red-600"
+                                  }`}
+                                >
+                                  {formatCurrency(displayAmount)}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleEdit(v);
+                              }}
+                              className="h-8 w-8 p-0"
                             >
-                              {formatCurrency(displayAmount)}
-                            </p>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleDelete(v.id, v.name);
+                              }}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>

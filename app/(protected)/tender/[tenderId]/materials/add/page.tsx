@@ -21,6 +21,7 @@ export default function AddMaterialPage({
   const [isBulk, setIsBulk] = useState(false);
   const [materials, setMaterials] = useState<any[]>([]);
   const [people, setPeople] = useState<any[]>([]);
+  const [vendors, setVendors] = useState<any[]>([]);
   const [personKey, setPersonKey] = useState("");
 
   const [formData, setFormData] = useState({
@@ -38,6 +39,7 @@ export default function AddMaterialPage({
     baseCost: "",
     unloadCost: "",
     supplier: "",
+    vendorId: "",
     paymentMethod: "cash",
     paymentRef: "",
     personId: "",
@@ -48,6 +50,7 @@ export default function AddMaterialPage({
   useEffect(() => {
     loadMaterials();
     loadPeople();
+    loadVendors();
   }, []);
 
   const loadMaterials = async () => {
@@ -59,6 +62,18 @@ export default function AddMaterialPage({
       .order("name_bn");
 
     if (data) setMaterials(data);
+  };
+
+  const loadVendors = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("vendors")
+      .select("id, name, phone")
+      .eq("tender_id", params.tenderId)
+      .eq("is_active", true)
+      .order("name");
+
+    if (data) setVendors(data);
   };
 
   const loadPeople = async () => {
@@ -117,6 +132,20 @@ export default function AddMaterialPage({
     }
 
     setPeople(list);
+  };
+
+  const handleVendorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const vendorId = e.target.value;
+    setFormData((prev) => ({ ...prev, vendorId }));
+    
+    if (vendorId) {
+      const vendor = vendors.find((v) => v.id === vendorId);
+      if (vendor) {
+        setFormData((prev) => ({ ...prev, supplier: vendor.name }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, supplier: "" }));
+    }
   };
 
   const handleChange = (
@@ -274,6 +303,7 @@ export default function AddMaterialPage({
           unload_cost:
             isBulk && formData.unloadCost ? parseFloat(formData.unloadCost) : null,
           supplier: formData.supplier || null,
+          vendor_id: formData.vendorId || null,
           payment_method: formData.paymentMethod as any,
           payment_ref: formData.paymentRef || null,
           notes: formData.notes || null,
@@ -566,15 +596,37 @@ export default function AddMaterialPage({
               )}
 
               <div>
+                <Label htmlFor="vendorId">{labels.vendor}</Label>
+                <select
+                  id="vendorId"
+                  name="vendorId"
+                  value={formData.vendorId}
+                  onChange={handleVendorChange}
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  disabled={loading}
+                >
+                  <option value="">Select vendor or enter below</option>
+                  {vendors.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} {v.phone ? `(${v.phone})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <Label htmlFor="supplier">{labels.supplier}</Label>
                 <Input
                   id="supplier"
                   name="supplier"
                   value={formData.supplier}
                   onChange={handleChange}
-                  placeholder="Supplier name"
+                  placeholder="Enter supplier name manually"
                   disabled={loading}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Select vendor above or enter supplier name manually
+                </p>
               </div>
 
               <div>

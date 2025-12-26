@@ -18,17 +18,20 @@ export default function EditMaterialPurchasePage({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [vendors, setVendors] = useState<any[]>([]);
 
   const [purchaseDate, setPurchaseDate] = useState("");
   const [customItemName, setCustomItemName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
   const [supplier, setSupplier] = useState("");
+  const [vendorId, setVendorId] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
     loadPurchase();
+    loadVendors();
   }, []);
 
   const loadPurchase = async () => {
@@ -48,6 +51,7 @@ export default function EditMaterialPurchasePage({
         setQuantity(data.quantity?.toString() || "");
         setUnit(data.unit || "");
         setSupplier(data.supplier || "");
+        setVendorId(data.vendor_id || "");
         setTotalAmount(data.total_amount?.toString() || "");
         setNotes(data.notes || "");
       }
@@ -55,6 +59,32 @@ export default function EditMaterialPurchasePage({
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
+    }
+  };
+
+  const loadVendors = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("vendors")
+      .select("id, name, phone")
+      .eq("tender_id", params.tenderId)
+      .eq("is_active", true)
+      .order("name");
+
+    if (data) setVendors(data);
+  };
+
+  const handleVendorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedVendorId = e.target.value;
+    setVendorId(selectedVendorId);
+    
+    if (selectedVendorId) {
+      const vendor = vendors.find((v) => v.id === selectedVendorId);
+      if (vendor) {
+        setSupplier(vendor.name);
+      }
+    } else {
+      setSupplier("");
     }
   };
 
@@ -74,6 +104,7 @@ export default function EditMaterialPurchasePage({
           quantity: parseFloat(quantity),
           unit: unit,
           supplier: supplier || null,
+          vendor_id: vendorId || null,
           total_amount: parseFloat(totalAmount),
           notes: notes || null,
         })
@@ -165,12 +196,32 @@ export default function EditMaterialPurchasePage({
               </div>
 
               <div>
+                <Label>বিক্রেতা</Label>
+                <select
+                  value={vendorId}
+                  onChange={handleVendorChange}
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  disabled={saving}
+                >
+                  <option value="">বিক্রেতা নির্বাচন করুন বা নিচে লিখুন</option>
+                  {vendors.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} {v.phone ? `(${v.phone})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <Label>সরবরাহকারী</Label>
                 <Input
                   value={supplier}
                   onChange={(e) => setSupplier(e.target.value)}
-                  placeholder="সরবরাহকারীর নাম"
+                  placeholder="ম্যানুয়ালি সরবরাহকারীর নাম লিখুন"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  উপরে বিক্রেতা নির্বাচন করুন বা ম্যানুয়ালি নাম লিখুন
+                </p>
               </div>
 
               <div>
