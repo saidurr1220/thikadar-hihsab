@@ -117,18 +117,18 @@ export default function EditMaterialPurchasePage({
           purchase_date: purchaseDate,
           material_id: materialId || null,
           custom_item_name: customItemName || null,
-          quantity: parseFloat(quantity),
+          quantity: Number(parseFloat(quantity).toFixed(3)),
           unit: unit,
           supplier: supplier || null,
           vendor_id: vendorId || null,
-          total_amount: parseFloat(totalAmount),
+          total_amount: Number(parseFloat(totalAmount).toFixed(2)),
           notes: notes || null,
         })
         .eq("id", params.purchaseId);
 
       if (error) throw error;
 
-      router.push(`/tender/${params.tenderId}/materials`);
+      router.push(`/tender/${params.tenderId}/purchases`);
       router.refresh();
     } catch (err: any) {
       setError(err.message);

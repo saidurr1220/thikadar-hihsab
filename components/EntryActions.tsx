@@ -44,6 +44,22 @@ export default function EntryActions({
 
       console.log("Deleting entry:", { entryId, tableName });
 
+      // First, delete any related auto-generated payments if this is a purchase
+      if (tableName === "material_purchases" || tableName === "vendor_purchases") {
+        const { data: relatedPayments } = await supabase
+          .from("vendor_payments")
+          .select("id")
+          .ilike("notes", `%Payment for purchase ${entryId}%`);
+
+        if (relatedPayments && relatedPayments.length > 0) {
+          await supabase
+            .from("vendor_payments")
+            .delete()
+            .in("id", relatedPayments.map(p => p.id));
+          console.log("Deleted related payments:", relatedPayments.length);
+        }
+      }
+
       const { data, error: deleteError } = await supabase
         .from(tableName)
         .delete()
