@@ -111,6 +111,9 @@ export default function EditMaterialPurchasePage({
     try {
       const supabase = createClient();
 
+      const newAmount = Number(parseFloat(totalAmount).toFixed(2));
+
+      // Update the purchase
       const { error } = await supabase
         .from("material_purchases")
         .update({
@@ -121,12 +124,36 @@ export default function EditMaterialPurchasePage({
           unit: unit,
           supplier: supplier || null,
           vendor_id: vendorId || null,
-          total_amount: Number(parseFloat(totalAmount).toFixed(2)),
+          total_amount: newAmount,
           notes: notes || null,
         })
         .eq("id", params.purchaseId);
 
       if (error) throw error;
+
+      // If vendor is associated, update any auto-generated payment
+      if (vendorId) {
+        const { data: relatedPayments } = await supabase
+          .from("vendor_payments")
+          .select("id, notes")
+          .eq("vendor_id", vendorId);
+
+        // Find payment that references this purchase
+        const matchingPayment = relatedPayments?.find(p => 
+          p.notes?.toLowerCase().includes(`purchase ${params.purchaseId}`)
+        );
+
+        if (matchingPayment) {
+          // Update the payment amount to match new purchase amount
+          await supabase
+            .from("vendor_payments")
+            .update({
+              amount: newAmount,
+              payment_date: purchaseDate,
+            })
+            .eq("id", matchingPayment.id);
+        }
+      }
 
       router.push(`/tender/${params.tenderId}/purchases`);
       router.refresh();
