@@ -46,12 +46,18 @@ export default function EntryActions({
 
       // First, delete any related auto-generated payments if this is a purchase
       if (tableName === "material_purchases" || tableName === "vendor_purchases") {
-        const { data: relatedPayments } = await supabase
+        // Get all payments that might be related to this purchase
+        const { data: allPayments } = await supabase
           .from("vendor_payments")
-          .select("id")
-          .ilike("notes", `%Payment for purchase ${entryId}%`);
+          .select("id, notes");
 
-        if (relatedPayments && relatedPayments.length > 0) {
+        // Filter for payments that mention this purchase ID
+        const relatedPayments = allPayments?.filter(p => 
+          p.notes?.toLowerCase().includes(entryId.toLowerCase()) ||
+          p.notes?.toLowerCase().includes(`purchase ${entryId}`)
+        ) || [];
+
+        if (relatedPayments.length > 0) {
           await supabase
             .from("vendor_payments")
             .delete()

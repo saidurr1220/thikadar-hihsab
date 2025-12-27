@@ -266,17 +266,26 @@ export default function VendorDetailPage({
         // Delete purchase
         if (txn.source === "vendor_purchase") {
           // First, find and delete any auto-generated payment for this specific purchase
+          // Try multiple matching strategies to catch all related payments
           const { data: relatedPayments } = await supabase
             .from("vendor_payments")
-            .select("id")
-            .eq("vendor_id", params.vendorId)
-            .ilike("notes", `%Payment for purchase ${txn.id}%`);
+            .select("id, notes, payment_date, amount")
+            .eq("vendor_id", params.vendorId);
 
-          if (relatedPayments && relatedPayments.length > 0) {
+          // Filter payments that match this purchase
+          const matchingPayments = relatedPayments?.filter(p => {
+            // Match by purchase ID in notes
+            const notesMatch = p.notes?.toLowerCase().includes(`purchase ${txn.id}`);
+            // Match by date and amount (for older payments without proper notes)
+            const dateAmountMatch = p.payment_date === txn.date && Math.abs(p.amount - txn.amount) < 0.01;
+            return notesMatch || dateAmountMatch;
+          }) || [];
+
+          if (matchingPayments.length > 0) {
             await supabase
               .from("vendor_payments")
               .delete()
-              .in("id", relatedPayments.map(p => p.id));
+              .in("id", matchingPayments.map(p => p.id));
           }
 
           // Then delete the purchase itself
@@ -289,15 +298,23 @@ export default function VendorDetailPage({
           // First, find and delete any auto-generated payment for this specific material purchase
           const { data: relatedPayments } = await supabase
             .from("vendor_payments")
-            .select("id")
-            .eq("vendor_id", params.vendorId)
-            .ilike("notes", `%Payment for purchase ${txn.id}%`);
+            .select("id, notes, payment_date, amount")
+            .eq("vendor_id", params.vendorId);
 
-          if (relatedPayments && relatedPayments.length > 0) {
+          // Filter payments that match this purchase
+          const matchingPayments = relatedPayments?.filter(p => {
+            // Match by purchase ID in notes
+            const notesMatch = p.notes?.toLowerCase().includes(`purchase ${txn.id}`);
+            // Match by date and amount (for older payments without proper notes)
+            const dateAmountMatch = p.payment_date === txn.date && Math.abs(p.amount - txn.amount) < 0.01;
+            return notesMatch || dateAmountMatch;
+          }) || [];
+
+          if (matchingPayments.length > 0) {
             await supabase
               .from("vendor_payments")
               .delete()
-              .in("id", relatedPayments.map(p => p.id));
+              .in("id", matchingPayments.map(p => p.id));
           }
 
           // Then delete the material purchase itself
