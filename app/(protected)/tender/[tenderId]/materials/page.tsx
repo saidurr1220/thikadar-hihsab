@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import EntryActions from "@/components/EntryActions";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { labels } from "@/lib/utils/bangla";
@@ -39,55 +40,56 @@ export default async function MaterialsListPage({
   const bulkCount = purchases?.filter((p) => p.is_bulk_breakdown).length || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6 flex justify-between items-center">
-          <div>
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div className="w-full sm:w-auto">
             <Link
               href={`/tender/${params.tenderId}`}
-              className="text-blue-600 hover:text-blue-800 text-sm"
+              className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm inline-flex items-center gap-1"
             >
+              <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
               Back to tender dashboard
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1.5 sm:mt-2">
               {labels.materialsRegister}
             </h1>
           </div>
-          <Link href={`/tender/${params.tenderId}/materials/add`}>
-            <Button>+ Add purchase</Button>
+          <Link href={`/tender/${params.tenderId}/materials/add`} className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9 md:h-10">+ Add purchase</Button>
           </Link>
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">
                 Total purchases
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(total)}</div>
+            <CardContent className="px-3 sm:px-6">
+              <div className="text-xl sm:text-2xl font-bold break-all">{formatCurrency(total)}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">
                 Total entries
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{purchases?.length || 0}</div>
+            <CardContent className="px-3 sm:px-6">
+              <div className="text-xl sm:text-2xl font-bold">{purchases?.length || 0}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">
                 Bulk breakdown entries
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{bulkCount}</div>
+            <CardContent className="px-3 sm:px-6">
+              <div className="text-xl sm:text-2xl font-bold">{bulkCount}</div>
             </CardContent>
           </Card>
         </div>

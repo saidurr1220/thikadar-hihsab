@@ -37,7 +37,7 @@ export default async function ExpensesOverviewPage({
       vendor_purchase: "Vendor Purchases",
       material_purchase: "Material Purchases",
       labor_entry: "Labor Entries",
-      activity_expense: "Activity Expenses",
+      activity_expense: "Site Expenses",
     };
     return labels[type] || type;
   };
@@ -58,11 +58,11 @@ export default async function ExpensesOverviewPage({
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <Link
-            href={`/tender/${params.tenderId}/expenses/vendors`}
+            href={`/tender/${params.tenderId}`}
             className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to vendor expenses
+            Back to tender dashboard
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

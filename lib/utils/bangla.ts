@@ -22,7 +22,7 @@ export const labels = {
   dashboard: "Dashboard",
   labor: "Labor",
   materials: "Materials",
-  activities: "Activities",
+  activities: "Site Expenses",
   advances: "Advances",
   expenses: "Expenses",
   reports: "Reports",
@@ -104,7 +104,7 @@ export const labels = {
   dailySheet: "Daily sheet",
   laborRegister: "Labor register",
   materialsRegister: "Materials register",
-  activityRegister: "Activity register",
+  activityRegister: "Site Expenses Register",
   advanceLedger: "Advance ledger",
   tenderSummary: "Tender summary",
 

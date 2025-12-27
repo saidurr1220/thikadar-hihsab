@@ -378,23 +378,23 @@ export default function PurchasesPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      <div className="max-w-7xl mx-auto px-4 py-8 lg:pl-8 pl-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-6 md:mb-8">
           <Link
             href={`/tender/${params.tenderId}`}
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 mb-4"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 mb-3 sm:mb-4"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             Back to dashboard
           </Link>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="w-full sm:w-auto">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 Purchases & Vendors
               </h1>
-              <p className="text-slate-600">
+              <p className="text-xs sm:text-sm text-slate-600">
                 Unified purchase management and vendor tracking
               </p>
             </div>
@@ -403,99 +403,102 @@ export default function PurchasesPage({
               onClick={() =>
                 router.push(`/tender/${params.tenderId}/purchases/add`)
               }
-              className="gap-2 bg-blue-600 hover:bg-blue-700"
+              className="gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm h-8 sm:h-9 md:h-10 w-full sm:w-auto px-3 sm:px-4"
             >
-              <Plus className="h-4 w-4" />
-              Add Purchase
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Add Purchase</span>
+              <span className="xs:hidden">Add</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
           <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Total Purchases
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90 flex items-center gap-1 sm:gap-2">
+                <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="truncate">Total Purchases</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="px-3 sm:px-6">
+              <div className="text-base sm:text-xl md:text-2xl font-bold break-all">
                 {formatCurrency(stats.totalPurchases)}
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Total Paid
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90 flex items-center gap-1 sm:gap-2">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="truncate">Total Paid</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="px-3 sm:px-6">
+              <div className="text-base sm:text-xl md:text-2xl font-bold break-all">
                 {formatCurrency(stats.totalPaid)}
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                Total Due
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90 flex items-center gap-1 sm:gap-2">
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="truncate">Total Due</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="px-3 sm:px-6">
+              <div className="text-base sm:text-xl md:text-2xl font-bold break-all">
                 {formatCurrency(stats.totalDue)}
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Active Vendors
+            <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+              <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90 flex items-center gap-1 sm:gap-2">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                <span className="truncate">Active Vendors</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeVendors}</div>
+            <CardContent className="px-3 sm:px-6">
+              <div className="text-base sm:text-xl md:text-2xl font-bold">{stats.activeVendors}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-slate-200">
+        <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 border-b border-slate-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab("purchases")}
-            className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+            className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
               activeTab === "purchases"
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            All Purchases ({purchases.length})
+            <span className="hidden sm:inline">All Purchases ({purchases.length})</span>
+            <span className="sm:hidden">Purchases ({purchases.length})</span>
           </button>
           <button
             onClick={() => setActiveTab("vendors")}
-            className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+            className={`px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
               activeTab === "vendors"
                 ? "border-blue-600 text-blue-600"
                 : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            Vendor Profiles ({vendors.length})
+            <span className="hidden sm:inline">Vendor Profiles ({vendors.length})</span>
+            <span className="sm:hidden">Vendors ({vendors.length})</span>
           </button>
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

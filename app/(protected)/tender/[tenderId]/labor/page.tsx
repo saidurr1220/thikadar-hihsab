@@ -62,39 +62,40 @@ export default async function LaborListPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-5 md:space-y-6">
         {/* Header */}
-        <header className="space-y-4">
+        <header className="space-y-3 sm:space-y-4">
           <Link
             href={`/tender/${params.tenderId}`}
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-800"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             Back to tender dashboard
           </Link>
           
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 rounded-xl">
-                  <Users className="h-7 w-7 text-blue-600" />
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 md:p-3 bg-blue-100 rounded-lg sm:rounded-xl flex-shrink-0">
+                  <Users className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-blue-600" />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">
                     Labor & Subcontractors
                   </h1>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
                     Manage site workforce and track daily & contract labor
                   </p>
                 </div>
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <Link href={`/tender/${params.tenderId}/labor/add`}>
-                <Button className="shadow-md hover:shadow-lg transition-all gap-2 bg-blue-600 hover:bg-blue-700">
-                  <UserPlus className="h-4 w-4" />
-                  Add Labor Entry
+                <Button className="shadow-md hover:shadow-lg transition-all gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm h-8 sm:h-9 md:h-10 px-2.5 sm:px-3 md:px-4">
+                  <UserPlus className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Add Labor Entry</span>
+                  <span className="xs:hidden">Add</span>
                 </Button>
               </Link>
               <Link href={`/tender/${params.tenderId}/labor/subcontractors/add`}>

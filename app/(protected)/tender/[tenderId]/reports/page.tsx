@@ -74,7 +74,7 @@ export default function ReportsMenuPage({
     {
       id: "activities",
       title: labels.activityRegister,
-      description: "কাজভিত্তিক খরচ খতিয়ান",
+      description: "সাইট খরচ ও দৈনিক খরচ খতিয়ান",
       icon: ClipboardList,
       color: "from-emerald-500 to-green-600",
       bgColor: "bg-emerald-50",
@@ -107,25 +107,25 @@ export default function ReportsMenuPage({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex-1">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex-1 w-full sm:w-auto">
               <Link
                 href={`/tender/${params.tenderId}`}
-                className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors mb-2"
+                className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors mb-1.5 sm:mb-2"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                 টেন্ডার ড্যাশবোর্ড
               </Link>
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                  <FileText className="h-5 w-5 text-white" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <FileText className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 truncate">
                     {labels.reports}
                   </h1>
-                  <p className="text-sm text-slate-600">সব রিপোর্ট এক জায়গায়</p>
+                  <p className="text-xs sm:text-sm text-slate-600">সব রিপোর্ট এক জায়গায়</p>
                 </div>
               </div>
             </div>
@@ -133,9 +133,9 @@ export default function ReportsMenuPage({
             <Button
               onClick={handleExportAll}
               disabled={exporting}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg gap-2 whitespace-nowrap"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg gap-1.5 sm:gap-2 w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-9 md:h-10 px-3 sm:px-4"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3 h-3 sm:w-4 sm:h-4" />
               {exporting ? "Export হচ্ছে..." : "সম্পূর্ণ Export"}
             </Button>
           </div>
@@ -143,7 +143,7 @@ export default function ReportsMenuPage({
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Info Banner */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 mb-8 text-white shadow-xl">
           <div className="flex items-start gap-4">

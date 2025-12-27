@@ -67,27 +67,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-3 sm:px-4 py-6">
       <div className="w-full max-w-md">
         <Card className="shadow-sm">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl font-semibold">
+          <CardHeader className="space-y-1.5 sm:space-y-2 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-xl sm:text-2xl font-semibold">
               Thikadari Hisab
             </CardTitle>
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Sign in to continue
             </p>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-red-700 text-sm">{error}</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 sm:p-3">
+                  <p className="text-red-700 text-xs sm:text-sm">{error}</p>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -96,11 +96,12 @@ export default function LoginPage() {
                   placeholder="admin@example.com"
                   required
                   disabled={loading}
+                  className="text-sm h-9 sm:h-10"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -108,24 +109,25 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
+                  className="text-sm h-9 sm:h-10"
                 />
               </div>
 
               <div className="text-right">
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-[10px] sm:text-xs text-blue-600 hover:text-blue-800"
                 >
                   Forgot password?
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full text-sm h-9 sm:h-10" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-gray-600">
+            <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-600">
               No account?{" "}
               <Link
                 href="/signup"
@@ -137,8 +139,8 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6">
-          <Link href="/" className="text-sm text-blue-600 hover:text-blue-800">
+        <div className="text-center mt-4 sm:mt-6">
+          <Link href="/" className="text-xs sm:text-sm text-blue-600 hover:text-blue-800">
             Back to home
           </Link>
         </div>

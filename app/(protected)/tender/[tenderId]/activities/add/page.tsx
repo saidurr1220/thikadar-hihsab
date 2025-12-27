@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Save, X, Calendar, FileText, Hash, DollarSign, User, Plus, Receipt, Layers } from "lucide-react";
 import { labels } from "@/lib/utils/bangla";
 
 export default function AddActivityPage({
@@ -267,35 +268,49 @@ export default function AddActivityPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-3xl mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header */}
         <div className="mb-6">
           <Link
-            href={`/tender/${params.tenderId}`}
-            className="text-blue-600 hover:text-blue-800"
+            href={`/tender/${params.tenderId}/activities`}
+            className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-900 font-medium transition-colors group"
           >
-            Back to tender dashboard
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            সাইট খরচে ফিরে যান
           </Link>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Add activity expense</CardTitle>
-            <p className="text-sm text-gray-600">
-              Record an activity expense. Use advance payment when spending from
-              staff advances.
-            </p>
-          </CardHeader>
-          <CardContent>
+        {/* Main Card */}
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 sm:p-8">
+            <div className="flex items-center gap-3 text-white">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Plus className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold">নতুন খরচ যোগ করুন</h1>
+                <p className="text-amber-50 text-sm mt-1">দৈনিক সাইট খরচ এবং কাস্টম খরচ রেকর্ড করুন</p>
+              </div>
+            </div>
+          </div>
+          <CardContent className="p-6 sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
+                  <p className="text-red-800 text-sm font-medium flex items-center gap-2">
+                    <X className="w-4 h-4" />
+                    {error}
+                  </p>
                 </div>
               )}
 
+              {/* Date Field */}
               <div>
-                <Label htmlFor="activityDate">{labels.date} *</Label>
+                <Label htmlFor="activityDate" className="text-gray-700 font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-amber-600" />
+                  {labels.date} <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="activityDate"
                   name="activityDate"
@@ -304,21 +319,26 @@ export default function AddActivityPage({
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500"
                 />
               </div>
 
+              {/* Category */}
               <div>
-                <Label htmlFor="categoryId">{labels.category} *</Label>
+                <Label htmlFor="categoryId" className="text-gray-700 font-medium flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-amber-600" />
+                  {labels.category} <span className="text-red-500">*</span>
+                </Label>
                 <select
                   id="categoryId"
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  className="mt-1.5 flex h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
                   required
                   disabled={loading}
                 >
-                  <option value="">Select category</option>
+                  <option value="">ক্যাটাগরি নির্বাচন করুন</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name_bn}
@@ -327,18 +347,22 @@ export default function AddActivityPage({
                 </select>
               </div>
 
-              {formData.categoryId && (
+              {/* Subcategory */}
+              {formData.categoryId && subcategories.length > 0 && (
                 <div>
-                  <Label htmlFor="subcategoryId">{labels.subcategory}</Label>
+                  <Label htmlFor="subcategoryId" className="text-gray-700 font-medium flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-amber-600" />
+                    {labels.subcategory}
+                  </Label>
                   <select
                     id="subcategoryId"
                     name="subcategoryId"
                     value={formData.subcategoryId}
                     onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    className="mt-1.5 flex h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
                     disabled={loading}
                   >
-                    <option value="">Select subcategory</option>
+                    <option value="">সাব-ক্যাটাগরি নির্বাচন করুন</option>
                     {subcategories.map((sub) => (
                       <option key={sub.id} value={sub.id}>
                         {sub.name_bn}
@@ -348,34 +372,49 @@ export default function AddActivityPage({
                 </div>
               )}
 
+              {/* Description */}
               <div>
-                <Label htmlFor="description">{labels.description} *</Label>
+                <Label htmlFor="description" className="text-gray-700 font-medium flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  {labels.description} <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Describe the activity"
+                  placeholder="খরচের বিবরণ লিখুন"
                   required
                   disabled={loading}
+                  className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500"
                 />
               </div>
 
+              {/* Mini BOQ Toggle */}
               <div>
                 <button
                   type="button"
                   onClick={() => setShowMiniBOQ(!showMiniBOQ)}
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-900 transition-colors"
                 >
-                  {showMiniBOQ ? "Hide mini BOQ" : "Add mini BOQ"}
+                  <Receipt className="w-4 h-4" />
+                  {showMiniBOQ ? "মিনি BOQ লুকান" : "মিনি BOQ যোগ করুন"}
                 </button>
               </div>
 
+              {/* Mini BOQ Section */}
               {showMiniBOQ && (
-                <div className="bg-gray-50 border rounded-lg p-4 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg p-5 space-y-4">
+                  <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+                    <Receipt className="w-5 h-5" />
+                    পরিমাণ ও রেট
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="quantity">{labels.quantity}</Label>
+                      <Label htmlFor="quantity" className="text-gray-700 font-medium flex items-center gap-2">
+                        <Hash className="w-4 h-4 text-amber-600" />
+                        {labels.quantity}
+                      </Label>
                       <Input
                         id="quantity"
                         name="quantity"
@@ -384,21 +423,30 @@ export default function AddActivityPage({
                         value={formData.quantity}
                         onChange={handleChange}
                         disabled={loading}
+                        placeholder=""
+                        className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="unit">{labels.unit}</Label>
+                      <Label htmlFor="unit" className="text-gray-700 font-medium flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-amber-600" />
+                        {labels.unit}
+                      </Label>
                       <Input
                         id="unit"
                         name="unit"
                         value={formData.unit}
                         onChange={handleChange}
-                        placeholder="Unit"
+                        placeholder="যেমন: দিন, ঘণ্টা"
                         disabled={loading}
+                        className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="rate">{labels.rate}</Label>
+                      <Label htmlFor="rate" className="text-gray-700 font-medium flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-amber-600" />
+                        {labels.rate}
+                      </Label>
                       <Input
                         id="rate"
                         name="rate"
@@ -407,14 +455,20 @@ export default function AddActivityPage({
                         value={formData.rate}
                         onChange={handleChange}
                         disabled={loading}
+                        placeholder=""
+                        className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Amount */}
               <div>
-                <Label htmlFor="amount">{labels.amount} *</Label>
+                <Label htmlFor="amount" className="text-gray-700 font-medium flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-amber-600" />
+                  {labels.amount} <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="amount"
                   name="amount"
@@ -424,29 +478,40 @@ export default function AddActivityPage({
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  placeholder=""
+                  className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500 text-lg font-semibold"
                 />
               </div>
 
+              {/* Vendor */}
               <div>
-                <Label htmlFor="vendor">{labels.vendor}</Label>
+                <Label htmlFor="vendor" className="text-gray-700 font-medium flex items-center gap-2">
+                  <User className="w-4 h-4 text-amber-600" />
+                  {labels.vendor}
+                </Label>
                 <Input
                   id="vendor"
                   name="vendor"
                   value={formData.vendor}
                   onChange={handleChange}
-                  placeholder="Vendor name (optional)"
+                  placeholder="বিক্রেতার নাম (ঐচ্ছিক)"
                   disabled={loading}
+                  className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500"
                 />
               </div>
 
+              {/* Payment Method */}
               <div>
-                <Label htmlFor="paymentMethod">{labels.paymentMethod}</Label>
+                <Label htmlFor="paymentMethod" className="text-gray-700 font-medium flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-amber-600" />
+                  {labels.paymentMethod}
+                </Label>
                 <select
                   id="paymentMethod"
                   name="paymentMethod"
                   value={formData.paymentMethod}
                   onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  className="mt-1.5 flex h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
                   disabled={loading}
                 >
                   <option value="cash">{labels.cash}</option>
@@ -456,19 +521,23 @@ export default function AddActivityPage({
                 </select>
               </div>
 
+              {/* Advance Person */}
               {formData.paymentMethod === "advance" && (
                 <div>
-                  <Label htmlFor="personKey">Advance person *</Label>
+                  <Label htmlFor="personKey" className="text-gray-700 font-medium flex items-center gap-2">
+                    <User className="w-4 h-4 text-amber-600" />
+                    অগ্রিম ব্যক্তি <span className="text-red-500">*</span>
+                  </Label>
                   <select
                     id="personKey"
                     name="personKey"
                     value={personKey}
                     onChange={handlePersonChange}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    className="mt-1.5 flex h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
                     required
                     disabled={loading}
                   >
-                    <option value="">Select person</option>
+                    <option value="">ব্যক্তি নির্বাচন করুন</option>
                     {people.map((p) => (
                       <option key={`${p.type}:${p.id}`} value={`${p.type}:${p.id}`}>
                         {p.name} ({p.role})
@@ -478,41 +547,59 @@ export default function AddActivityPage({
                 </div>
               )}
 
+              {/* Payment Reference */}
               <div>
-                <Label htmlFor="paymentRef">Payment reference</Label>
+                <Label htmlFor="paymentRef" className="text-gray-700 font-medium flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  পেমেন্ট রেফারেন্স
+                </Label>
                 <Input
                   id="paymentRef"
                   name="paymentRef"
                   value={formData.paymentRef}
                   onChange={handleChange}
-                  placeholder="Reference (optional)"
+                  placeholder="রেফারেন্স (ঐচ্ছিক)"
                   disabled={loading}
+                  className="mt-1.5 border-gray-300 focus:border-amber-500 focus:ring-amber-500"
                 />
               </div>
 
+              {/* Notes */}
               <div>
-                <Label htmlFor="notes">{labels.notes}</Label>
+                <Label htmlFor="notes" className="text-gray-700 font-medium flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-600" />
+                  {labels.notes}
+                </Label>
                 <textarea
                   id="notes"
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
-                  rows={3}
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  rows={4}
+                  className="mt-1.5 flex w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
                   disabled={loading}
+                  placeholder="অতিরিক্ত তথ্য লিখুন..."
                 />
               </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={loading} className="flex-1">
-                  {loading ? labels.loading : labels.save}
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-6 text-base shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Save className="w-5 h-5 mr-2" />
+                  {loading ? "সংরক্ষণ করছি..." : labels.save}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={loading}
+                  className="flex-1 sm:flex-none border-2 border-gray-300 hover:bg-gray-50 font-semibold py-6 text-base"
                 >
+                  <X className="w-5 h-5 mr-2" />
                   {labels.cancel}
                 </Button>
               </div>
