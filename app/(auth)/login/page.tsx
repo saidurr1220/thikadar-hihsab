@@ -87,7 +87,9 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
+                <Label htmlFor="email" className="text-xs sm:text-sm">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -101,7 +103,9 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
+                <Label htmlFor="password" className="text-xs sm:text-sm">
+                  Password
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -122,7 +126,11 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full text-sm h-9 sm:h-10" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full text-sm h-9 sm:h-10"
+                disabled={loading}
+              >
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
@@ -140,7 +148,10 @@ export default function LoginPage() {
         </Card>
 
         <div className="text-center mt-4 sm:mt-6">
-          <Link href="/" className="text-xs sm:text-sm text-blue-600 hover:text-blue-800">
+          <Link
+            href="/"
+            className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
+          >
             Back to home
           </Link>
         </div>

@@ -2,7 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
-import { ArrowLeft, TrendingDown, Receipt, Filter, Calendar } from "lucide-react";
+import {
+  ArrowLeft,
+  TrendingDown,
+  Receipt,
+  Filter,
+  Calendar,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 

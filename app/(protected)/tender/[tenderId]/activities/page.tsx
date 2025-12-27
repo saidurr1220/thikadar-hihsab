@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/button";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import EntryActions from "@/components/EntryActions";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Wallet, 
-  TrendingUp, 
-  FileText, 
+import {
+  ArrowLeft,
+  Plus,
+  Wallet,
+  TrendingUp,
+  FileText,
   Calendar,
   Tag,
   User,
-  Receipt
+  Receipt,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -61,7 +61,7 @@ export default async function ActivitiesListPage({
             <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             Back to tender dashboard
           </Link>
-          
+
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 sm:p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl sm:rounded-2xl shadow-lg flex-shrink-0">
@@ -76,8 +76,11 @@ export default async function ActivitiesListPage({
                 </p>
               </div>
             </div>
-            
-            <Link href={`/tender/${params.tenderId}/activities/add`} className="w-full sm:w-auto">
+
+            <Link
+              href={`/tender/${params.tenderId}/activities/add`}
+              className="w-full sm:w-auto"
+            >
               <Button className="w-full sm:w-auto gap-1.5 sm:gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all text-xs sm:text-sm h-9 sm:h-10 md:h-11">
                 <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Add Expense Entry
@@ -99,7 +102,9 @@ export default async function ActivitiesListPage({
               <div className="text-xl sm:text-2xl md:text-3xl font-bold break-all">
                 {formatCurrency(total)}
               </div>
-              <p className="text-[10px] sm:text-xs text-amber-100 mt-0.5 sm:mt-1">All time</p>
+              <p className="text-[10px] sm:text-xs text-amber-100 mt-0.5 sm:mt-1">
+                All time
+              </p>
             </CardContent>
           </Card>
 
@@ -114,7 +119,9 @@ export default async function ActivitiesListPage({
               <div className="text-xl sm:text-2xl md:text-3xl font-bold">
                 {activities?.length || 0}
               </div>
-              <p className="text-[10px] sm:text-xs text-orange-100 mt-0.5 sm:mt-1">Expense records</p>
+              <p className="text-[10px] sm:text-xs text-orange-100 mt-0.5 sm:mt-1">
+                Expense records
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -169,8 +176,12 @@ export default async function ActivitiesListPage({
                 <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center">
                   <Receipt className="w-8 h-8 sm:w-10 sm:h-10 text-amber-600" />
                 </div>
-                <p className="text-gray-600 font-medium mb-4">No expense entries yet</p>
-                <p className="text-sm text-gray-500 mb-6">Start tracking your site expenses</p>
+                <p className="text-gray-600 font-medium mb-4">
+                  No expense entries yet
+                </p>
+                <p className="text-sm text-gray-500 mb-6">
+                  Start tracking your site expenses
+                </p>
                 <Link href={`/tender/${params.tenderId}/activities/add`}>
                   <Button className="gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700">
                     <Plus className="h-4 w-4" />
@@ -212,21 +223,24 @@ export default async function ActivitiesListPage({
                             <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0" />
                             <span>{formatDate(activity.expense_date)}</span>
                           </div>
-                          
+
                           {activity.quantity && activity.unit && (
                             <div className="flex items-center gap-1.5">
                               <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0" />
                               <span>
                                 {activity.quantity} {activity.unit}
-                                {activity.rate && ` @ ${formatCurrency(activity.rate)}`}
+                                {activity.rate &&
+                                  ` @ ${formatCurrency(activity.rate)}`}
                               </span>
                             </div>
                           )}
-                          
+
                           {activity.vendor && (
                             <div className="flex items-center gap-1.5">
                               <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-amber-600 flex-shrink-0" />
-                              <span className="truncate">{activity.vendor}</span>
+                              <span className="truncate">
+                                {activity.vendor}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -244,7 +258,9 @@ export default async function ActivitiesListPage({
                       {/* Right Content - Amount & Actions */}
                       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-4">
                         <div className="sm:text-right">
-                          <p className="text-xs sm:text-sm text-gray-600 mb-0.5 sm:mb-1">Amount</p>
+                          <p className="text-xs sm:text-sm text-gray-600 mb-0.5 sm:mb-1">
+                            Amount
+                          </p>
                           <p className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600">
                             {formatCurrency(activity.amount)}
                           </p>

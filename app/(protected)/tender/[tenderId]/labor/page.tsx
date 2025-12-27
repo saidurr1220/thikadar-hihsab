@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import EntryActions from "@/components/EntryActions";
-import { ArrowLeft, Users, Briefcase, TrendingUp, Calendar, UserPlus } from "lucide-react";
+import {
+  ArrowLeft,
+  Users,
+  Briefcase,
+  TrendingUp,
+  Calendar,
+  UserPlus,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +79,7 @@ export default async function LaborListPage({
             <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
             Back to tender dashboard
           </Link>
-          
+
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -89,7 +96,7 @@ export default async function LaborListPage({
                 </div>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap gap-2 sm:gap-3">
               <Link href={`/tender/${params.tenderId}/labor/add`}>
                 <Button className="shadow-md hover:shadow-lg transition-all gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm h-8 sm:h-9 md:h-10 px-2.5 sm:px-3 md:px-4">
@@ -98,8 +105,13 @@ export default async function LaborListPage({
                   <span className="xs:hidden">Add</span>
                 </Button>
               </Link>
-              <Link href={`/tender/${params.tenderId}/labor/subcontractors/add`}>
-                <Button variant="outline" className="shadow-sm hover:shadow-md transition-all gap-2">
+              <Link
+                href={`/tender/${params.tenderId}/labor/subcontractors/add`}
+              >
+                <Button
+                  variant="outline"
+                  className="shadow-sm hover:shadow-md transition-all gap-2"
+                >
                   <Briefcase className="h-4 w-4" />
                   Add Subcontractor
                 </Button>
@@ -163,9 +175,7 @@ export default async function LaborListPage({
               <div className="text-3xl font-bold">
                 {formatCurrency(combinedTotal)}
               </div>
-              <p className="text-sm text-amber-100 mt-2">
-                All labor expenses
-              </p>
+              <p className="text-sm text-amber-100 mt-2">All labor expenses</p>
             </CardContent>
           </Card>
         </div>
@@ -261,7 +271,9 @@ export default async function LaborListPage({
                           )}
                         </div>
                         <div className="text-base font-semibold text-gray-900">
-                          {entry.crew_name || entry.labor_name || "Unnamed crew"}
+                          {entry.crew_name ||
+                            entry.labor_name ||
+                            "Unnamed crew"}
                         </div>
                         {entry.work_types?.name_bn && (
                           <div className="text-sm text-gray-600">

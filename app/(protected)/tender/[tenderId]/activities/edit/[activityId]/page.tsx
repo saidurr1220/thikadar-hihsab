@@ -8,7 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Save, X, Calendar, FileText, Hash, DollarSign, User, FileEdit } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  X,
+  Calendar,
+  FileText,
+  Hash,
+  DollarSign,
+  User,
+  FileEdit,
+} from "lucide-react";
 
 export default function EditActivityExpensePage({
   params,
@@ -126,8 +136,12 @@ export default function EditActivityExpensePage({
                 <FileEdit className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">খরচ সমপদন করন</h1>
-                <p className="text-amber-50 text-sm mt-1">সইট খরচর তথয আপডট করন</p>
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                  খরচ সমপদন করন
+                </h1>
+                <p className="text-amber-50 text-sm mt-1">
+                  সইট খরচর তথয আপডট করন
+                </p>
               </div>
             </div>
           </div>
@@ -264,9 +278,9 @@ export default function EditActivityExpensePage({
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Button 
-                  type="submit" 
-                  disabled={saving} 
+                <Button
+                  type="submit"
+                  disabled={saving}
                   className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-6 text-base shadow-lg hover:shadow-xl transition-all"
                 >
                   <Save className="w-5 h-5 mr-2" />

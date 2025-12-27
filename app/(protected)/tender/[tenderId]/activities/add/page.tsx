@@ -8,7 +8,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Save, X, Calendar, FileText, Hash, DollarSign, User, Plus, Receipt, Layers } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  X,
+  Calendar,
+  FileText,
+  Hash,
+  DollarSign,
+  User,
+  Plus,
+  Receipt,
+  Layers,
+} from "lucide-react";
 import { labels } from "@/lib/utils/bangla";
 
 export default function AddActivityPage({
@@ -289,8 +301,12 @@ export default function AddActivityPage({
                 <Plus className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">নতুন খরচ যোগ করুন</h1>
-                <p className="text-amber-50 text-sm mt-1">দৈনিক সাইট খরচ এবং কাস্টম খরচ রেকর্ড করুন</p>
+                <h1 className="text-2xl sm:text-3xl font-bold">
+                  নতুন খরচ যোগ করুন
+                </h1>
+                <p className="text-amber-50 text-sm mt-1">
+                  দৈনিক সাইট খরচ এবং কাস্টম খরচ রেকর্ড করুন
+                </p>
               </div>
             </div>
           </div>
@@ -307,7 +323,10 @@ export default function AddActivityPage({
 
               {/* Date Field */}
               <div>
-                <Label htmlFor="activityDate" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="activityDate"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <Calendar className="w-4 h-4 text-amber-600" />
                   {labels.date} <span className="text-red-500">*</span>
                 </Label>
@@ -325,7 +344,10 @@ export default function AddActivityPage({
 
               {/* Category */}
               <div>
-                <Label htmlFor="categoryId" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="categoryId"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <Layers className="w-4 h-4 text-amber-600" />
                   {labels.category} <span className="text-red-500">*</span>
                 </Label>
@@ -350,7 +372,10 @@ export default function AddActivityPage({
               {/* Subcategory */}
               {formData.categoryId && subcategories.length > 0 && (
                 <div>
-                  <Label htmlFor="subcategoryId" className="text-gray-700 font-medium flex items-center gap-2">
+                  <Label
+                    htmlFor="subcategoryId"
+                    className="text-gray-700 font-medium flex items-center gap-2"
+                  >
                     <Layers className="w-4 h-4 text-amber-600" />
                     {labels.subcategory}
                   </Label>
@@ -374,7 +399,10 @@ export default function AddActivityPage({
 
               {/* Description */}
               <div>
-                <Label htmlFor="description" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="description"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <FileText className="w-4 h-4 text-amber-600" />
                   {labels.description} <span className="text-red-500">*</span>
                 </Label>
@@ -411,7 +439,10 @@ export default function AddActivityPage({
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="quantity" className="text-gray-700 font-medium flex items-center gap-2">
+                      <Label
+                        htmlFor="quantity"
+                        className="text-gray-700 font-medium flex items-center gap-2"
+                      >
                         <Hash className="w-4 h-4 text-amber-600" />
                         {labels.quantity}
                       </Label>
@@ -428,7 +459,10 @@ export default function AddActivityPage({
                       />
                     </div>
                     <div>
-                      <Label htmlFor="unit" className="text-gray-700 font-medium flex items-center gap-2">
+                      <Label
+                        htmlFor="unit"
+                        className="text-gray-700 font-medium flex items-center gap-2"
+                      >
                         <FileText className="w-4 h-4 text-amber-600" />
                         {labels.unit}
                       </Label>
@@ -443,7 +477,10 @@ export default function AddActivityPage({
                       />
                     </div>
                     <div>
-                      <Label htmlFor="rate" className="text-gray-700 font-medium flex items-center gap-2">
+                      <Label
+                        htmlFor="rate"
+                        className="text-gray-700 font-medium flex items-center gap-2"
+                      >
                         <DollarSign className="w-4 h-4 text-amber-600" />
                         {labels.rate}
                       </Label>
@@ -465,7 +502,10 @@ export default function AddActivityPage({
 
               {/* Amount */}
               <div>
-                <Label htmlFor="amount" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="amount"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <DollarSign className="w-4 h-4 text-amber-600" />
                   {labels.amount} <span className="text-red-500">*</span>
                 </Label>
@@ -485,7 +525,10 @@ export default function AddActivityPage({
 
               {/* Vendor */}
               <div>
-                <Label htmlFor="vendor" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="vendor"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <User className="w-4 h-4 text-amber-600" />
                   {labels.vendor}
                 </Label>
@@ -502,7 +545,10 @@ export default function AddActivityPage({
 
               {/* Payment Method */}
               <div>
-                <Label htmlFor="paymentMethod" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="paymentMethod"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <DollarSign className="w-4 h-4 text-amber-600" />
                   {labels.paymentMethod}
                 </Label>
@@ -524,7 +570,10 @@ export default function AddActivityPage({
               {/* Advance Person */}
               {formData.paymentMethod === "advance" && (
                 <div>
-                  <Label htmlFor="personKey" className="text-gray-700 font-medium flex items-center gap-2">
+                  <Label
+                    htmlFor="personKey"
+                    className="text-gray-700 font-medium flex items-center gap-2"
+                  >
                     <User className="w-4 h-4 text-amber-600" />
                     অগ্রিম ব্যক্তি <span className="text-red-500">*</span>
                   </Label>
@@ -539,7 +588,10 @@ export default function AddActivityPage({
                   >
                     <option value="">ব্যক্তি নির্বাচন করুন</option>
                     {people.map((p) => (
-                      <option key={`${p.type}:${p.id}`} value={`${p.type}:${p.id}`}>
+                      <option
+                        key={`${p.type}:${p.id}`}
+                        value={`${p.type}:${p.id}`}
+                      >
                         {p.name} ({p.role})
                       </option>
                     ))}
@@ -549,7 +601,10 @@ export default function AddActivityPage({
 
               {/* Payment Reference */}
               <div>
-                <Label htmlFor="paymentRef" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="paymentRef"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <FileText className="w-4 h-4 text-amber-600" />
                   পেমেন্ট রেফারেন্স
                 </Label>
@@ -566,7 +621,10 @@ export default function AddActivityPage({
 
               {/* Notes */}
               <div>
-                <Label htmlFor="notes" className="text-gray-700 font-medium flex items-center gap-2">
+                <Label
+                  htmlFor="notes"
+                  className="text-gray-700 font-medium flex items-center gap-2"
+                >
                   <FileText className="w-4 h-4 text-amber-600" />
                   {labels.notes}
                 </Label>

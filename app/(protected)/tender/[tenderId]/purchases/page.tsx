@@ -464,7 +464,9 @@ export default function PurchasesPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 sm:px-6">
-              <div className="text-base sm:text-xl md:text-2xl font-bold">{stats.activeVendors}</div>
+              <div className="text-base sm:text-xl md:text-2xl font-bold">
+                {stats.activeVendors}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -479,7 +481,9 @@ export default function PurchasesPage({
                 : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            <span className="hidden sm:inline">All Purchases ({purchases.length})</span>
+            <span className="hidden sm:inline">
+              All Purchases ({purchases.length})
+            </span>
             <span className="sm:hidden">Purchases ({purchases.length})</span>
           </button>
           <button
@@ -490,7 +494,9 @@ export default function PurchasesPage({
                 : "border-transparent text-slate-600 hover:text-slate-900"
             }`}
           >
-            <span className="hidden sm:inline">Vendor Profiles ({vendors.length})</span>
+            <span className="hidden sm:inline">
+              Vendor Profiles ({vendors.length})
+            </span>
             <span className="sm:hidden">Vendors ({vendors.length})</span>
           </button>
         </div>

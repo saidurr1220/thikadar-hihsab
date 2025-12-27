@@ -101,8 +101,18 @@ export default async function DashboardPage() {
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-3">
             <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl sm:rounded-2xl shadow-lg flex-shrink-0">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              <svg
+                className="w-6 h-6 sm:w-8 sm:h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                />
               </svg>
             </div>
             <div className="min-w-0 flex-1">
@@ -121,8 +131,18 @@ export default async function DashboardPage() {
           <Card className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
               <CardTitle className="text-xs sm:text-sm font-medium text-blue-50 flex items-center gap-1 sm:gap-2">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg
+                  className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
                 <span className="truncate">মোট টেন্ডার</span>
               </CardTitle>
@@ -131,15 +151,27 @@ export default async function DashboardPage() {
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold">
                 {tenders.length}
               </div>
-              <p className="text-[10px] sm:text-xs text-blue-100 mt-0.5 sm:mt-1">সর্বমোট প্রজেক্ট</p>
+              <p className="text-[10px] sm:text-xs text-blue-100 mt-0.5 sm:mt-1">
+                সর্বমোট প্রজেক্ট
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-500 via-green-600 to-emerald-600 text-white border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
               <CardTitle className="text-xs sm:text-sm font-medium text-green-50 flex items-center gap-1 sm:gap-2">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <span className="truncate">সক্রিয় টেন্ডার</span>
               </CardTitle>
@@ -148,15 +180,27 @@ export default async function DashboardPage() {
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold">
                 {activeTenders.length}
               </div>
-              <p className="text-[10px] sm:text-xs text-green-100 mt-0.5 sm:mt-1">চলমান প্রজেক্ট</p>
+              <p className="text-[10px] sm:text-xs text-green-100 mt-0.5 sm:mt-1">
+                চলমান প্রজেক্ট
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-500 via-purple-600 to-violet-600 text-white border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
             <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
               <CardTitle className="text-xs sm:text-sm font-medium text-purple-50 flex items-center gap-1 sm:gap-2">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
                 <span className="truncate">ভূমিকা</span>
               </CardTitle>
@@ -165,15 +209,27 @@ export default async function DashboardPage() {
               <div className="text-xl sm:text-2xl md:text-3xl font-bold capitalize truncate">
                 {profile.role}
               </div>
-              <p className="text-[10px] sm:text-xs text-purple-100 mt-0.5 sm:mt-1">আপনার অধিকার</p>
+              <p className="text-[10px] sm:text-xs text-purple-100 mt-0.5 sm:mt-1">
+                আপনার অধিকার
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 text-white border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 col-span-2 lg:col-span-1">
             <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
               <CardTitle className="text-xs sm:text-sm font-medium text-orange-50 flex items-center gap-1 sm:gap-2">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <span className="truncate">মোট খরচ (৩০ দিন)</span>
               </CardTitle>
@@ -182,7 +238,9 @@ export default async function DashboardPage() {
               <div className="text-lg sm:text-xl md:text-2xl font-bold break-all">
                 {formatCurrency(totalExpenses)}
               </div>
-              <p className="text-[10px] sm:text-xs text-orange-100 mt-0.5 sm:mt-1">গত এক মাসের</p>
+              <p className="text-[10px] sm:text-xs text-orange-100 mt-0.5 sm:mt-1">
+                গত এক মাসের
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -192,8 +250,18 @@ export default async function DashboardPage() {
           <div className="mb-6 sm:mb-8">
             <div className="flex items-center gap-2 mb-4 sm:mb-5">
               <div className="p-1.5 sm:p-2 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex-shrink-0">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                <svg
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                  />
                 </svg>
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">
@@ -205,8 +273,18 @@ export default async function DashboardPage() {
                 <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                   <CardTitle className="text-xs sm:text-sm font-semibold text-blue-700 flex items-center gap-1.5 sm:gap-2">
                     <div className="p-1 sm:p-1.5 bg-blue-500 rounded-lg flex-shrink-0">
-                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      <svg
+                        className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
                       </svg>
                     </div>
                     <span className="truncate">শ্রমিক খরচ</span>
@@ -229,8 +307,18 @@ export default async function DashboardPage() {
                 <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                   <CardTitle className="text-xs sm:text-sm font-semibold text-green-700 flex items-center gap-1.5 sm:gap-2">
                     <div className="p-1 sm:p-1.5 bg-green-500 rounded-lg flex-shrink-0">
-                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      <svg
+                        className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        />
                       </svg>
                     </div>
                     <span className="truncate">মালামাল খরচ</span>
@@ -253,8 +341,18 @@ export default async function DashboardPage() {
                 <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                   <CardTitle className="text-xs sm:text-sm font-semibold text-orange-700 flex items-center gap-1.5 sm:gap-2">
                     <div className="p-1 sm:p-1.5 bg-orange-500 rounded-lg flex-shrink-0">
-                      <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      <svg
+                        className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                        />
                       </svg>
                     </div>
                     <span className="truncate">সাইট খরচ</span>
@@ -285,8 +383,18 @@ export default async function DashboardPage() {
           <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-slate-200 px-3 sm:px-6">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="p-1.5 sm:p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md flex-shrink-0">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <svg
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
                 </svg>
               </div>
               <CardTitle className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">

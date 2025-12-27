@@ -125,7 +125,10 @@ export default async function TenderDashboardPage({
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link href={`/tender/${params.tenderId}/reports`}>
-                  <Button variant="outline" className="gap-1.5 sm:gap-2 border border-slate-200 sm:border-2 hover:bg-blue-50 hover:border-blue-300 transition-all text-xs sm:text-sm h-8 sm:h-9 md:h-10 px-2.5 sm:px-3 md:px-4">
+                  <Button
+                    variant="outline"
+                    className="gap-1.5 sm:gap-2 border border-slate-200 sm:border-2 hover:bg-blue-50 hover:border-blue-300 transition-all text-xs sm:text-sm h-8 sm:h-9 md:h-10 px-2.5 sm:px-3 md:px-4"
+                  >
                     <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden xs:inline">Reports</span>
                   </Button>
@@ -154,7 +157,9 @@ export default async function TenderDashboardPage({
                 <p className="text-base sm:text-lg md:text-xl font-bold break-all">
                   {formatCurrency(grandTotal)}
                 </p>
-                <p className="text-[8px] sm:text-[10px] text-indigo-100 mt-0.5">All-time</p>
+                <p className="text-[8px] sm:text-[10px] text-indigo-100 mt-0.5">
+                  All-time
+                </p>
               </CardContent>
             </Card>
 
@@ -265,37 +270,55 @@ export default async function TenderDashboardPage({
               <CardContent className="pt-3 sm:pt-4 px-3 sm:px-6 pb-3 sm:pb-6">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
                   <Link href={`/tender/${params.tenderId}/labor/add`}>
-                    <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-blue-50 hover:border-blue-300 transition-all px-2 sm:px-3">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-blue-50 hover:border-blue-300 transition-all px-2 sm:px-3"
+                    >
                       <HardHat className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0" />
                       <span className="truncate">Labor</span>
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/purchases/add`}>
-                    <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-green-50 hover:border-green-300 transition-all px-2 sm:px-3">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-green-50 hover:border-green-300 transition-all px-2 sm:px-3"
+                    >
                       <Package className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 flex-shrink-0" />
                       <span className="truncate">Purchase</span>
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/activities/add`}>
-                    <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-amber-50 hover:border-amber-300 transition-all px-2 sm:px-3">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-amber-50 hover:border-amber-300 transition-all px-2 sm:px-3"
+                    >
                       <ClipboardList className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600 flex-shrink-0" />
                       <span className="truncate">Site Expense</span>
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/advances/people`}>
-                    <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-purple-50 hover:border-purple-300 transition-all px-2 sm:px-3">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-purple-50 hover:border-purple-300 transition-all px-2 sm:px-3"
+                    >
                       <Users className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 flex-shrink-0" />
                       <span className="truncate">Advances</span>
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/purchases`}>
-                    <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-indigo-50 hover:border-indigo-300 transition-all px-2 sm:px-3">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-indigo-50 hover:border-indigo-300 transition-all px-2 sm:px-3"
+                    >
                       <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-600 flex-shrink-0" />
                       <span className="truncate">Purchases</span>
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/expenses/overview`}>
-                    <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-slate-50 hover:border-slate-300 transition-all px-2 sm:px-3">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-slate-50 hover:border-slate-300 transition-all px-2 sm:px-3"
+                    >
                       <Coins className="h-3 w-3 sm:h-4 sm:w-4 text-slate-600 flex-shrink-0" />
                       <span className="truncate">Overview</span>
                     </Button>
@@ -313,13 +336,19 @@ export default async function TenderDashboardPage({
               </CardHeader>
               <CardContent className="pt-3 sm:pt-4 px-3 sm:px-6 pb-3 sm:pb-6 space-y-1.5 sm:space-y-2">
                 <Link href={`/tender/${params.tenderId}/advances/people`}>
-                  <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-purple-50 hover:border-purple-300 transition-all px-2 sm:px-3">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-purple-50 hover:border-purple-300 transition-all px-2 sm:px-3"
+                  >
                     <Users className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 flex-shrink-0" />
                     <span className="truncate">Staff Balances</span>
                   </Button>
                 </Link>
                 <Link href={`/tender/${params.tenderId}/purchases`}>
-                  <Button variant="outline" className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-indigo-50 hover:border-indigo-300 transition-all px-2 sm:px-3">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-1 sm:gap-2 h-8 sm:h-9 md:h-10 text-xs sm:text-sm border border-slate-200 sm:border-2 hover:bg-indigo-50 hover:border-indigo-300 transition-all px-2 sm:px-3"
+                  >
                     <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-600 flex-shrink-0" />
                     <span className="truncate">Vendor Balances</span>
                   </Button>
