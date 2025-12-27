@@ -29,7 +29,7 @@ export default function VendorExpenseHubPage({
   const [newVendor, setNewVendor] = useState({
     name: "",
     phone: "",
-    categoryId: "",
+    categoryIds: [] as string[],
   });
 
   useEffect(() => {
@@ -50,6 +50,17 @@ export default function VendorExpenseHubPage({
       .eq("is_active", true)
       .order("name");
 
+    // Load vendor category mappings
+    const { data: mappingsData } = await supabase
+      .from("vendor_category_mappings")
+      .select("vendor_id, category_id");
+
+    // Attach category IDs to vendors
+    const vendorsWithCategories = (vendorData || []).map((v) => ({
+      ...v,
+      categoryIds: mappingsData?.filter((m) => m.vendor_id === v.id).map((m) => m.category_id) || [],
+    }));
+
     const { data: purchaseData } = await supabase
       .from("vendor_purchases")
       .select("vendor_id, total_cost")
@@ -61,7 +72,7 @@ export default function VendorExpenseHubPage({
       .eq("tender_id", params.tenderId);
 
     setCategories(categoryData || []);
-    setVendors(vendorData || []);
+    setVendors(vendorsWithCategories || []);
     setTotalPurchasesAll(
       purchaseData?.reduce((sum, p) => sum + Number(p.total_cost || 0), 0) || 0
     );
@@ -89,7 +100,9 @@ export default function VendorExpenseHubPage({
 
   const filteredVendors = useMemo(() => {
     if (activeCategory === "all") return vendors;
-    return vendors.filter((v) => v.category_id === activeCategory);
+    return vendors.filter((v) => 
+      v.categoryIds && v.categoryIds.includes(activeCategory)
+    );
   }, [vendors, activeCategory]);
 
   const totalDue = filteredVendors.reduce((sum, v) => {
@@ -109,17 +122,27 @@ export default function VendorExpenseHubPage({
     if (!userId) return;
 
     setAdding(true);
-    const { error } = await supabase.from("vendors").insert({
+    const { data: vendorData, error } = await supabase.from("vendors").insert({
       name: newVendor.name,
       phone: newVendor.phone || null,
-      category_id: newVendor.categoryId || null,
+      category_id: null, // Keep for backward compatibility
       tender_id: params.tenderId,
       created_by: userId,
-    });
+    }).select().single();
+
+    if (!error && vendorData && newVendor.categoryIds.length > 0) {
+      // Insert category mappings
+      await supabase.from("vendor_category_mappings").insert(
+        newVendor.categoryIds.map((catId) => ({
+          vendor_id: vendorData.id,
+          category_id: catId,
+        }))
+      );
+    }
 
     setAdding(false);
     if (!error) {
-      setNewVendor({ name: "", phone: "", categoryId: "" });
+      setNewVendor({ name: "", phone: "", categoryIds: [] });
       loadAll();
     }
   };
@@ -129,7 +152,7 @@ export default function VendorExpenseHubPage({
     setNewVendor({
       name: vendor.name,
       phone: vendor.phone || "",
-      categoryId: vendor.category_id || "",
+      categoryIds: vendor.categoryIds || [],
     });
   };
 
@@ -143,14 +166,31 @@ export default function VendorExpenseHubPage({
       .update({
         name: newVendor.name,
         phone: newVendor.phone || null,
-        category_id: newVendor.categoryId || null,
       })
       .eq("id", editingVendor.id);
+
+    if (!error) {
+      // Delete old category mappings
+      await supabase
+        .from("vendor_category_mappings")
+        .delete()
+        .eq("vendor_id", editingVendor.id);
+
+      // Insert new category mappings
+      if (newVendor.categoryIds.length > 0) {
+        await supabase.from("vendor_category_mappings").insert(
+          newVendor.categoryIds.map((catId) => ({
+            vendor_id: editingVendor.id,
+            category_id: catId,
+          }))
+        );
+      }
+    }
 
     setAdding(false);
     if (!error) {
       setEditingVendor(null);
-      setNewVendor({ name: "", phone: "", categoryId: "" });
+      setNewVendor({ name: "", phone: "", categoryIds: [] });
       loadAll();
     }
   };
@@ -170,7 +210,7 @@ export default function VendorExpenseHubPage({
 
   const cancelEdit = () => {
     setEditingVendor(null);
-    setNewVendor({ name: "", phone: "", categoryId: "" });
+    setNewVendor({ name: "", phone: "", categoryIds: [] });
   };
 
   return (
@@ -285,26 +325,40 @@ export default function VendorExpenseHubPage({
                     }
                   />
                 </div>
-                <div>
-                  <Label htmlFor="vendorCategory">Category</Label>
-                  <select
-                    id="vendorCategory"
-                    className="w-full h-10 border rounded-md px-3 text-sm"
-                    value={newVendor.categoryId}
-                    onChange={(e) =>
-                      setNewVendor((p) => ({
-                        ...p,
-                        categoryId: e.target.value,
-                      }))
-                    }
-                  >
-                    <option value="">All</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name_bn || c.name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="md:col-span-2">
+                  <Label>Categories (select multiple)</Label>
+                  <div className="border rounded-md p-3 max-h-40 overflow-y-auto bg-white">
+                    <div className="grid grid-cols-2 gap-2">
+                      {categories.map((c) => (
+                        <label
+                          key={c.id}
+                          className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={newVendor.categoryIds.includes(c.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewVendor((p) => ({
+                                  ...p,
+                                  categoryIds: [...p.categoryIds, c.id],
+                                }));
+                              } else {
+                                setNewVendor((p) => ({
+                                  ...p,
+                                  categoryIds: p.categoryIds.filter(
+                                    (id) => id !== c.id
+                                  ),
+                                }));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-sm">{c.name_bn || c.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="md:col-span-4 flex gap-2">
                   <Button type="submit" disabled={adding}>
@@ -383,11 +437,23 @@ export default function VendorExpenseHubPage({
                                 <p className="font-semibold text-lg text-slate-900">
                                   {v.name}
                                 </p>
-                                <p className="text-sm text-slate-500">
-                                  {categories.find(
-                                    (c) => c.id === v.category_id
-                                  )?.name_bn || "Other"}
-                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {v.categoryIds && v.categoryIds.length > 0 ? (
+                                    v.categoryIds.map((catId: string) => {
+                                      const cat = categories.find((c) => c.id === catId);
+                                      return cat ? (
+                                        <span
+                                          key={catId}
+                                          className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded"
+                                        >
+                                          {cat.name_bn || cat.name}
+                                        </span>
+                                      ) : null;
+                                    })
+                                  ) : (
+                                    <span className="text-xs text-slate-400">No category</span>
+                                  )}
+                                </div>
                               </div>
                               <div className="text-right">
                                 <p

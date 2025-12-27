@@ -3,6 +3,15 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils/format";
+import {
+  ArrowLeft,
+  Users,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Plus,
+  User,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -79,123 +88,207 @@ export default async function PeopleAdvanceHubPage({
 
   const balances = Array.from(balanceMap.values());
 
-  const totalAdvances =
-    balances?.reduce(
-      (sum: number, b: any) => sum + Number(b.total_advances || 0),
-      0
-    ) || 0;
+  const totalAdvances = balances?.reduce(
+    (sum: number, b: any) => sum + Number(b.total_advances || 0),
+    0
+  ) || 0;
+
+  const totalExpenses = balances?.reduce(
+    (sum: number, b: any) => sum + Number(b.total_expenses || 0),
+    0
+  ) || 0;
+
+  const netBalance = totalAdvances - totalExpenses;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <Link
-              href={`/tender/${params.tenderId}`}
-              className="text-blue-600 hover:text-blue-800 text-sm"
-            >
-              ← Tender dashboard
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900 mt-2">
-              Staff Advances
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Advance and expense ledger by person
-            </p>
-          </div>
-          <Link href={`/tender/${params.tenderId}/advances/give`}>
-            <Button>+ Give advance</Button>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total advances
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(totalAdvances)}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total people
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{balances?.length || 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Info
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Each person has a split view for advances and expenses.
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(167,243,208,0.4),rgba(255,255,255,0))]">
+      <div className="bg-gradient-to-br from-emerald-50 via-white to-slate-50 py-8">
+        <div className="max-w-6xl mx-auto px-4 space-y-6 lg:pl-8 pl-20">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="text-center lg:text-left">
+              <Link
+                href={`/tender/${params.tenderId}`}
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to tender dashboard
+              </Link>
+              <h1 className="text-3xl font-bold text-slate-900 mt-2 flex items-center gap-3">
+                <Users className="h-8 w-8 text-emerald-600" />
+                Staff & Workers
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">
+                Manage advances and expenses for all staff members
               </p>
+            </div>
+            <Link href={`/tender/${params.tenderId}/advances/give`}>
+              <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="h-4 w-4" />
+                Add Person
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Total Advances
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-emerald-600">
+                  {formatCurrency(totalAdvances)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4" />
+                  Total Expenses
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {formatCurrency(totalExpenses)}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Net Balance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div
+                  className={`text-2xl font-bold ${
+                    netBalance > 0
+                      ? "text-blue-600"
+                      : netBalance < 0
+                      ? "text-orange-600"
+                      : "text-slate-600"
+                  }`}
+                >
+                  {formatCurrency(Math.abs(netBalance))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-slate-500 flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Total People
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-slate-900">
+                  {balances?.length || 0}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="bg-white/80 border-slate-200/70 shadow-sm">
+            <CardHeader className="border-b bg-white/50">
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-slate-600" />
+                People
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {!balances || balances.length === 0 ? (
+                <div className="text-center py-16 text-slate-500">
+                  <Users className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                  <p className="text-lg font-medium">No staff members yet</p>
+                  <p className="text-sm mt-2">
+                    Start by giving an advance to someone
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {balances.map((bal: any) => {
+                    const showBalance = bal.balance > 0;
+                    const displayAmount = showBalance
+                      ? bal.balance
+                      : Math.abs(bal.balance);
+
+                    return (
+                      <Link
+                        key={bal.person_id}
+                        href={`/tender/${params.tenderId}/advances/people/${bal.person_id}`}
+                      >
+                        <div className="border border-slate-200 rounded-lg p-4 bg-white group hover:shadow-md hover:border-emerald-300 transition-all">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center flex-shrink-0">
+                                <User className="h-5 w-5 text-emerald-700" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-lg text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
+                                  {bal.person_name}
+                                </p>
+                                {bal.role && (
+                                  <p className="text-sm text-slate-500 mt-0.5">
+                                    {bal.role}
+                                  </p>
+                                )}
+                                <div className="flex gap-3 mt-2 text-xs text-slate-600">
+                                  <span className="flex items-center gap-1">
+                                    <TrendingUp className="h-3 w-3 text-emerald-600" />
+                                    {formatCurrency(bal.total_advances)}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <TrendingDown className="h-3 w-3 text-red-600" />
+                                    {formatCurrency(bal.total_expenses)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p
+                                className={`text-xl font-bold ${
+                                  bal.balance > 0
+                                    ? "text-blue-600"
+                                    : bal.balance < 0
+                                    ? "text-orange-600"
+                                    : "text-slate-600"
+                                }`}
+                              >
+                                {formatCurrency(Math.abs(bal.balance))}
+                              </p>
+                              <p
+                                className={`text-xs font-medium mt-1 px-2 py-0.5 rounded-full inline-block ${
+                                  bal.balance > 0
+                                    ? "bg-blue-100 text-blue-700"
+                                    : bal.balance < 0
+                                    ? "bg-orange-100 text-orange-700"
+                                    : "bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                {bal.balance > 0
+                                  ? "Has balance"
+                                  : bal.balance < 0
+                                  ? "Over spent"
+                                  : "Settled"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>People</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!balances || balances.length === 0 ? (
-              <div className="text-center py-10 text-gray-500">
-                No people yet.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {balances.map((bal: any) => (
-                  <Link
-                    key={bal.person_id}
-                    href={`/tender/${params.tenderId}/advances/people/${bal.person_id}`}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-lg">
-                          {bal.person_name}
-                        </p>
-                        <p className="text-sm text-gray-600">{bal.role}</p>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-lg font-bold ${
-                            bal.balance > 0
-                              ? "text-green-600"
-                              : bal.balance < 0
-                              ? "text-red-600"
-                              : "text-gray-600"
-                          }`}
-                        >
-                          {formatCurrency(Math.abs(bal.balance))}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {bal.balance > 0
-                            ? "Advance due"
-                            : bal.balance < 0
-                            ? "Overpaid"
-                            : "Settled"}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

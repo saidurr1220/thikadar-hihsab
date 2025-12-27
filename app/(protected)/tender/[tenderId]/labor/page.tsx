@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import EntryActions from "@/components/EntryActions";
+import { ArrowLeft, Users, Briefcase, TrendingUp, Calendar, UserPlus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -53,190 +54,232 @@ export default async function LaborListPage({
 
   const tabClass = (tab: "daily" | "contract") =>
     [
-      "flex-1 rounded-md border px-3 py-2 text-center text-sm font-medium transition",
+      "flex-1 rounded-lg border px-4 py-3 text-center text-sm font-semibold transition-all",
       activeTab === tab
-        ? "border-blue-600 bg-blue-50 text-blue-700"
-        : "border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:text-blue-700",
+        ? "border-blue-500 bg-blue-500 text-white shadow-lg scale-105"
+        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600 hover:shadow-md",
     ].join(" ");
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 space-y-6">
-        <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <Link
-              href={`/tender/${params.tenderId}`}
-              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
-            >
-              <span className="text-base">ƒ+?</span>
-              Back to tender dashboard
-            </Link>
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
-                Site workforce
-              </p>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Labor & Subcontractors
-              </h1>
-              <p className="text-sm text-gray-600">
-                Daily labor stays with your expenses; contract crews track
-                khoraki separately.
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        {/* Header */}
+        <header className="space-y-4">
+          <Link
+            href={`/tender/${params.tenderId}`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to tender dashboard
+          </Link>
+          
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <Users className="h-7 w-7 text-blue-600" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Labor & Subcontractors
+                  </h1>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Manage site workforce and track daily & contract labor
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href={`/tender/${params.tenderId}/labor/add`}>
-              <Button className="shadow-sm">+ Add labor</Button>
-            </Link>
-            <Link href={`/tender/${params.tenderId}/labor/subcontractors/add`}>
-              <Button variant="outline">+ Add subcontractor</Button>
-            </Link>
+            
+            <div className="flex flex-wrap gap-3">
+              <Link href={`/tender/${params.tenderId}/labor/add`}>
+                <Button className="shadow-md hover:shadow-lg transition-all gap-2 bg-blue-600 hover:bg-blue-700">
+                  <UserPlus className="h-4 w-4" />
+                  Add Labor Entry
+                </Button>
+              </Link>
+              <Link href={`/tender/${params.tenderId}/labor/subcontractors/add`}>
+                <Button variant="outline" className="shadow-sm hover:shadow-md transition-all gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Add Subcontractor
+                </Button>
+              </Link>
+            </div>
           </div>
         </header>
 
-        {/* Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-white border-slate-200 shadow-sm">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">
-                Daily labor (expense)
+              <CardTitle className="text-sm font-medium text-blue-100 flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Daily Labor (Expense)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-semibold text-gray-900">
+              <div className="text-3xl font-bold">
                 {formatCurrency(dailyTotal)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-blue-100 mt-2">
                 {dailyEntries.length} entries
               </p>
             </CardContent>
           </Card>
-          <Card className="bg-white border-slate-200 shadow-sm">
+
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-700">
-                Contract labor (khoraki)
+              <CardTitle className="text-sm font-medium text-purple-100 flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Contract Labor (Khoraki)
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-semibold text-gray-900">
+              <div className="text-3xl font-bold">
                 {formatCurrency(contractTotal)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-purple-100 mt-2">
                 {contractEntries.length} entries
               </p>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-white via-slate-50 to-slate-100 border-slate-200 shadow-sm">
-            <CardHeader className="pb-3 flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-700">
-                All labor (for totals)
-              </CardTitle>
-              <Link
-                href={`/tender/${params.tenderId}/labor/subcontractors`}
-                className="text-xs text-blue-600 hover:underline"
-              >
-                View by subcontractor
-              </Link>
+
+          <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-amber-100 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Total Combined
+                </CardTitle>
+                <Link
+                  href={`/tender/${params.tenderId}/labor/subcontractors`}
+                  className="text-xs text-amber-100 hover:text-white underline underline-offset-2"
+                >
+                  By Subcontractor →
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl md:text-4xl font-semibold text-gray-900">
+              <div className="text-3xl font-bold">
                 {formatCurrency(combinedTotal)}
               </div>
-              <p className="text-sm text-gray-500 mt-1">
-                Daily + contract shown separately below
+              <p className="text-sm text-amber-100 mt-2">
+                All labor expenses
               </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2">
+        <div className="flex gap-3 sm:gap-4">
           <Link
             href={`/tender/${params.tenderId}/labor?tab=daily`}
             className={tabClass("daily")}
           >
-            Daily labor
+            <Users className="h-4 w-4 inline-block mr-2" />
+            Daily Labor
           </Link>
           <Link
             href={`/tender/${params.tenderId}/labor?tab=contract`}
             className={tabClass("contract")}
           >
-            Contract labor
+            <Briefcase className="h-4 w-4 inline-block mr-2" />
+            Contract Labor
           </Link>
         </div>
 
         {/* Entries List */}
-        <Card className="border-slate-200 shadow-sm">
-          <CardHeader className="flex flex-col gap-1">
-            <CardTitle>
-              {activeTab === "contract"
-                ? "Contract labor khoraki"
-                : "Daily labor expense"}
-            </CardTitle>
-            <p className="text-sm text-gray-500">
-              {activeEntries.length} entries · {formatCurrency(activeTotal)}
-            </p>
-          </CardHeader>
-          <CardContent>
-            {activeEntries.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">
+        <Card className="border-slate-200 shadow-md">
+          <CardHeader className="border-b border-slate-100 bg-white">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle className="text-xl font-semibold">
                   {activeTab === "contract"
-                    ? "No contract labor entries yet."
-                    : "No daily labor entries yet."}
+                    ? "Contract Labor Khoraki Entries"
+                    : "Daily Labor Expense Entries"}
+                </CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  {activeEntries.length} entries · {formatCurrency(activeTotal)}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Calendar className="h-4 w-4" />
+                Latest entries shown first
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {activeEntries.length === 0 ? (
+              <div className="text-center py-16">
+                <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg font-medium mb-2">
+                  {activeTab === "contract"
+                    ? "No contract labor entries yet"
+                    : "No daily labor entries yet"}
+                </p>
+                <p className="text-gray-400 text-sm mb-6">
+                  Start tracking your {activeTab} labor expenses
                 </p>
                 <Link
                   href={`/tender/${params.tenderId}/labor/add?laborType=${activeTab}`}
                 >
-                  <Button>Add your first entry</Button>
+                  <Button className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Add Your First Entry
+                  </Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="divide-y divide-slate-100">
                 {activeEntries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-blue-200 hover:shadow-sm transition"
+                    className="p-4 sm:p-5 hover:bg-slate-50 transition-all"
                   >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span>{formatDate(entry.entry_date)}</span>
-                        <span
-                          className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600"
-                          title={
-                            entry.labor_type === "contract"
-                              ? "Contract labor"
-                              : "Daily labor"
-                          }
-                        >
-                          {entry.labor_type === "contract"
-                            ? "Contract"
-                            : "Daily"}
-                        </span>
-                        {entry.subcontractors?.name && (
-                          <span>Aú {entry.subcontractors.name}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-gray-700">
+                            {formatDate(entry.entry_date)}
+                          </span>
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                              entry.labor_type === "contract"
+                                ? "bg-purple-100 text-purple-700 border border-purple-200"
+                                : "bg-blue-100 text-blue-700 border border-blue-200"
+                            }`}
+                          >
+                            {entry.labor_type === "contract"
+                              ? "Contract"
+                              : "Daily"}
+                          </span>
+                          {entry.subcontractors?.name && (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">
+                              <Briefcase className="h-3 w-3 inline mr-1" />
+                              {entry.subcontractors.name}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-base font-semibold text-gray-900">
+                          {entry.crew_name || entry.labor_name || "Unnamed crew"}
+                        </div>
+                        {entry.work_types?.name_bn && (
+                          <div className="text-sm text-gray-600">
+                            {entry.work_types.name_bn}
+                          </div>
                         )}
                       </div>
-                      <div className="text-sm font-medium text-gray-800">
-                        {entry.crew_name || entry.labor_name || "Unnamed crew"}
-                      </div>
-                      {entry.work_types?.name_bn && (
-                        <div className="text-xs text-gray-500">
-                          {entry.work_types.name_bn}
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {formatCurrency(calcBase(entry))}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <div className="text-lg font-semibold text-blue-600">
-                          {formatCurrency(calcBase(entry))}
-                        </div>
+                        <EntryActions
+                          entryId={entry.id}
+                          tableName="labor_entries"
+                          editUrl={`/tender/${params.tenderId}/labor/edit/${entry.id}`}
+                        />
                       </div>
-                      <EntryActions
-                        entryId={entry.id}
-                        tableName="labor_entries"
-                        editUrl={`/tender/${params.tenderId}/labor/edit/${entry.id}`}
-                      />
                     </div>
                   </div>
                 ))}

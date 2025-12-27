@@ -54,6 +54,15 @@ export default function VendorDetailPage({
   });
 
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [vendorEdit, setVendorEdit] = useState({
+    name: "",
+    phone: "",
+    categoryIds: [] as string[],
+    notes: "",
+  });
+  const [updating, setUpdating] = useState(false);
   const [paymentData, setPaymentData] = useState({
     paymentDate: new Date().toISOString().split("T")[0],
     amount: "",
@@ -65,7 +74,18 @@ export default function VendorDetailPage({
 
   useEffect(() => {
     loadData();
+    loadCategories();
   }, []);
+
+  const loadCategories = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("vendor_categories")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
+    if (data) setCategories(data);
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -77,6 +97,16 @@ export default function VendorDetailPage({
       .select("*, vendor_categories(name, name_bn)")
       .eq("id", params.vendorId)
       .single();
+
+    // Load vendor category mappings
+    const { data: mappingsData } = await supabase
+      .from("vendor_category_mappings")
+      .select("category_id")
+      .eq("vendor_id", params.vendorId);
+
+    if (vendorData) {
+      vendorData.categoryIds = mappingsData?.map((m) => m.category_id) || [];
+    }
 
     // Load vendor purchases
     const { data: vendorPurchases } = await supabase
@@ -235,12 +265,47 @@ export default function VendorDetailPage({
       } else {
         // Delete purchase
         if (txn.source === "vendor_purchase") {
+          // First, find and delete any auto-generated payment for this specific purchase
+          // The payment would have been created on the same date with matching amount
+          const { data: relatedPayments } = await supabase
+            .from("vendor_payments")
+            .select("id")
+            .eq("vendor_id", params.vendorId)
+            .eq("payment_date", txn.date)
+            .eq("amount", txn.amount)
+            .ilike("notes", `%Auto payment for%`);
+
+          if (relatedPayments && relatedPayments.length > 0) {
+            await supabase
+              .from("vendor_payments")
+              .delete()
+              .in("id", relatedPayments.map(p => p.id));
+          }
+
+          // Then delete the purchase itself
           const result = await supabase
             .from("vendor_purchases")
             .delete()
             .eq("id", txn.id);
           error = result.error;
         } else if (txn.source === "material_purchase") {
+          // First, find and delete any auto-generated payment for this specific material purchase
+          const { data: relatedPayments } = await supabase
+            .from("vendor_payments")
+            .select("id")
+            .eq("vendor_id", params.vendorId)
+            .eq("payment_date", txn.date)
+            .eq("amount", txn.amount)
+            .ilike("notes", `%Auto payment for%`);
+
+          if (relatedPayments && relatedPayments.length > 0) {
+            await supabase
+              .from("vendor_payments")
+              .delete()
+              .in("id", relatedPayments.map(p => p.id));
+          }
+
+          // Then delete the material purchase itself
           const result = await supabase
             .from("material_purchases")
             .delete()
@@ -263,6 +328,68 @@ export default function VendorDetailPage({
       router.push(`/tender/${params.tenderId}/expenses/vendors/${params.vendorId}?edit=${txn.id}`);
     } else if (txn.source === "material_purchase") {
       router.push(`/tender/${params.tenderId}/materials/edit/${txn.id}`);
+    }
+  };
+
+  const handleEditVendor = () => {
+    setVendorEdit({
+      name: vendor.name || "",
+      phone: vendor.phone || "",
+      categoryIds: vendor.categoryIds || [],
+      notes: vendor.notes || "",
+    });
+    setShowEditForm(true);
+  };
+
+  const handleUpdateVendor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!vendorEdit.name.trim()) {
+      alert("Vendor name is required");
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const supabase = createClient();
+
+      // Update vendor basic info
+      const { error: updateError } = await supabase
+        .from("vendors")
+        .update({
+          name: vendorEdit.name,
+          phone: vendorEdit.phone || null,
+          notes: vendorEdit.notes || null,
+        })
+        .eq("id", params.vendorId);
+
+      if (updateError) throw updateError;
+
+      // Delete old category mappings
+      await supabase
+        .from("vendor_category_mappings")
+        .delete()
+        .eq("vendor_id", params.vendorId);
+
+      // Insert new category mappings
+      if (vendorEdit.categoryIds.length > 0) {
+        const { error: mappingError } = await supabase
+          .from("vendor_category_mappings")
+          .insert(
+            vendorEdit.categoryIds.map((catId) => ({
+              vendor_id: params.vendorId,
+              category_id: catId,
+            }))
+          );
+
+        if (mappingError) throw mappingError;
+      }
+
+      setShowEditForm(false);
+      loadData();
+    } catch (err: any) {
+      alert("Error updating vendor: " + err.message);
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -311,23 +438,40 @@ export default function VendorDetailPage({
               <h1 className="text-3xl font-bold text-slate-900 mb-2">
                 {vendor.name}
               </h1>
-              <div className="flex items-center gap-4 text-sm text-slate-600">
+              <div className="flex items-center gap-3 text-sm text-slate-600">
                 {vendor.phone && (
                   <div className="flex items-center gap-1">
                     <Phone className="h-4 w-4" />
                     {vendor.phone}
                   </div>
                 )}
-                {vendor.vendor_categories && (
-                  <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                    {vendor.vendor_categories.name_bn ||
-                      vendor.vendor_categories.name}
+                {vendor.categoryIds && vendor.categoryIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {vendor.categoryIds.map((catId: string) => {
+                      const cat = categories.find((c) => c.id === catId);
+                      return cat ? (
+                        <span
+                          key={catId}
+                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                        >
+                          {cat.name_bn || cat.name}
+                        </span>
+                      ) : null;
+                    })}
                   </div>
                 )}
               </div>
             </div>
 
             <div className="flex gap-2">
+              <Button
+                onClick={handleEditVendor}
+                variant="outline"
+                className="gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit Profile
+              </Button>
               <Button
                 onClick={() =>
                   router.push(
@@ -439,6 +583,115 @@ export default function VendorDetailPage({
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Vendor Form */}
+        {showEditForm && (
+          <Card className="mb-8 border-2 border-blue-200 shadow-lg">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                <Edit className="h-5 w-5" />
+                Edit Vendor Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleUpdateVendor} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="vendorName">Vendor Name *</Label>
+                    <Input
+                      id="vendorName"
+                      value={vendorEdit.name}
+                      onChange={(e) =>
+                        setVendorEdit((p) => ({ ...p, name: e.target.value }))
+                      }
+                      required
+                      disabled={updating}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="vendorPhone">Phone Number</Label>
+                    <Input
+                      id="vendorPhone"
+                      value={vendorEdit.phone}
+                      onChange={(e) =>
+                        setVendorEdit((p) => ({ ...p, phone: e.target.value }))
+                      }
+                      disabled={updating}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Categories (select multiple)</Label>
+                  <div className="border rounded-md p-4 max-h-48 overflow-y-auto bg-white">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {categories.map((c) => (
+                        <label
+                          key={c.id}
+                          className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={vendorEdit.categoryIds.includes(c.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setVendorEdit((p) => ({
+                                  ...p,
+                                  categoryIds: [...p.categoryIds, c.id],
+                                }));
+                              } else {
+                                setVendorEdit((p) => ({
+                                  ...p,
+                                  categoryIds: p.categoryIds.filter(
+                                    (id) => id !== c.id
+                                  ),
+                                }));
+                              }
+                            }}
+                            disabled={updating}
+                            className="rounded"
+                          />
+                          <span className="text-sm">
+                            {c.name_bn || c.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="vendorNotes">Notes</Label>
+                  <textarea
+                    id="vendorNotes"
+                    value={vendorEdit.notes}
+                    onChange={(e) =>
+                      setVendorEdit((p) => ({ ...p, notes: e.target.value }))
+                    }
+                    disabled={updating}
+                    rows={3}
+                    className="w-full border rounded-md px-3 py-2 text-sm"
+                    placeholder="Additional notes about this vendor..."
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button type="submit" disabled={updating}>
+                    {updating ? "Updating..." : "Update Vendor"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowEditForm(false)}
+                    disabled={updating}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Payment Form */}
         {showPaymentForm && (

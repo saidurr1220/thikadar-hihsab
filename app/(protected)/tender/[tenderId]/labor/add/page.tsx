@@ -10,6 +10,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils/format";
 import { labels } from "@/lib/utils/bangla";
+import { 
+  ArrowLeft, 
+  Users, 
+  Briefcase, 
+  Calendar,
+  DollarSign,
+  AlertCircle,
+  CheckCircle,
+  UserPlus
+} from "lucide-react";
 
 type LaborType = "contract" | "daily";
 
@@ -202,58 +212,86 @@ export default function AddLaborPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-3xl mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-slate-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header */}
         <div className="mb-6">
           <Link
-            href={`/tender/${params.tenderId}`}
-            className="text-blue-600 hover:text-blue-800"
+            href={`/tender/${params.tenderId}/labor`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 mb-4"
           >
-            Back to tender dashboard
+            <ArrowLeft className="h-4 w-4" />
+            Back to labor list
           </Link>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-100 rounded-xl">
+              <UserPlus className="h-7 w-7 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Add Labor Entry
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Record daily or contract labor expenses
+              </p>
+            </div>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Add labor entry</CardTitle>
+        <Card className="shadow-lg border-slate-200">
+          <CardHeader className="border-b border-slate-100 bg-white">
+            <CardTitle className="text-xl font-semibold text-gray-900">
+              Labor Entry Details
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-red-800 text-sm font-medium">{error}</p>
                 </div>
               )}
 
               {/* Labor Type Tabs */}
-              <div className="flex gap-2 border-b">
-                <button
-                  type="button"
-                  onClick={() => setLaborType("contract")}
-                  className={`px-4 py-2 font-medium ${
-                    laborType === "contract"
-                      ? "border-b-2 border-blue-600 text-blue-600"
-                      : "text-gray-600"
-                  }`}
-                >
-                  {labels.contract}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLaborType("daily")}
-                  className={`px-4 py-2 font-medium ${
-                    laborType === "daily"
-                      ? "border-b-2 border-blue-600 text-blue-600"
-                      : "text-gray-600"
-                  }`}
-                >
-                  {labels.daily}
-                </button>
+              <div className="space-y-2">
+                <Label className="text-base font-semibold text-gray-900">
+                  Labor Type *
+                </Label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setLaborType("contract")}
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-lg border-2 font-semibold transition-all ${
+                      laborType === "contract"
+                        ? "border-purple-500 bg-purple-50 text-purple-700 shadow-md"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-purple-200 hover:bg-purple-50/50"
+                    }`}
+                  >
+                    <Briefcase className="h-5 w-5" />
+                    {labels.contract}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLaborType("daily")}
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-lg border-2 font-semibold transition-all ${
+                      laborType === "daily"
+                        ? "border-blue-500 bg-blue-50 text-blue-700 shadow-md"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:bg-blue-50/50"
+                    }`}
+                  >
+                    <Users className="h-5 w-5" />
+                    {labels.daily}
+                  </button>
+                </div>
               </div>
 
               {/* Date */}
-              <div>
-                <Label htmlFor="entryDate">{labels.date} *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="entryDate" className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  {labels.date} *
+                </Label>
                 <Input
                   id="entryDate"
                   name="entryDate"
@@ -262,28 +300,34 @@ export default function AddLaborPage({
                   onChange={handleChange}
                   required
                   disabled={loading}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 />
               </div>
 
               {/* Contract Fields */}
               {laborType === "contract" && (
-                <div>
-                  <Label htmlFor="crewName">{labels.crewName} *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="crewName" className="text-sm font-semibold text-gray-900">
+                    {labels.crewName} *
+                  </Label>
                   <Input
                     id="crewName"
                     name="crewName"
                     value={formData.crewName}
                     onChange={handleChange}
-                    placeholder="Crew / team name"
+                    placeholder="Enter crew or team name"
                     disabled={loading}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               )}
 
               {/* Daily Fields */}
               {laborType === "daily" && (
-                <div>
-                  <Label htmlFor="laborName">{labels.laborName}</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="laborName" className="text-sm font-semibold text-gray-900">
+                    {labels.laborName}
+                  </Label>
                   <Input
                     id="laborName"
                     name="laborName"
@@ -291,19 +335,22 @@ export default function AddLaborPage({
                     onChange={handleChange}
                     placeholder="Worker name (optional)"
                     disabled={loading}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               )}
 
               {/* Work Type */}
-              <div>
-                <Label htmlFor="workTypeId">{labels.workType}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="workTypeId" className="text-sm font-semibold text-gray-900">
+                  {labels.workType}
+                </Label>
                 <select
                   id="workTypeId"
                   name="workTypeId"
                   value={formData.workTypeId}
                   onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  className="flex h-11 w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                   disabled={loading}
                 >
                   <option value="">Select work type</option>
@@ -316,23 +363,27 @@ export default function AddLaborPage({
               </div>
 
               {/* Headcount */}
-              <div>
-                <Label htmlFor="headcount">{labels.headcount}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="headcount" className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  {labels.headcount}
+                </Label>
                 <Input
                   id="headcount"
                   name="headcount"
                   type="number"
                   value={formData.headcount}
                   onChange={handleChange}
-                  placeholder="Headcount"
+                  placeholder="Number of workers"
                   disabled={loading}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 />
               </div>
 
               {/* Khoraki */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="khorakiRatePerHead">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="khorakiRatePerHead" className="text-sm font-semibold text-gray-900">
                     {labels.khorakiPerHead}
                   </Label>
                   <Input
@@ -342,12 +393,15 @@ export default function AddLaborPage({
                     step="0.01"
                     value={formData.khorakiRatePerHead}
                     onChange={handleChange}
-                    placeholder="Rate per head"
+                    placeholder="Rate per person"
                     disabled={loading}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="khorakiTotal">{labels.khorakiTotal}</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="khorakiTotal" className="text-sm font-semibold text-gray-900">
+                    {labels.khorakiTotal}
+                  </Label>
                   <Input
                     id="khorakiTotal"
                     name="khorakiTotal"
@@ -355,15 +409,19 @@ export default function AddLaborPage({
                     step="0.01"
                     value={formData.khorakiTotal}
                     onChange={handleChange}
-                    placeholder="Total khoraki"
+                    placeholder="Total khoraki amount"
                     disabled={loading}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               </div>
 
               {/* Wage */}
-              <div>
-                <Label htmlFor="wageTotal">{labels.wageTotal}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="wageTotal" className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  {labels.wageTotal}
+                </Label>
                 <Input
                   id="wageTotal"
                   name="wageTotal"
@@ -371,21 +429,25 @@ export default function AddLaborPage({
                   step="0.01"
                   value={formData.wageTotal}
                   onChange={handleChange}
-                  placeholder="Wage total"
+                  placeholder="Total wage amount"
                   disabled={loading}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 />
               </div>
 
               {/* Subcontractor */}
-              <div className="space-y-2">
-                <Label htmlFor="subcontractorId">Subcontractor / Team</Label>
+              <div className="space-y-3">
+                <Label htmlFor="subcontractorId" className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-gray-500" />
+                  Subcontractor / Team
+                </Label>
                 <div className="flex gap-2">
                   <select
                     id="subcontractorId"
                     name="subcontractorId"
                     value={formData.subcontractorId}
                     onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    className="flex h-11 w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                     disabled={loading}
                   >
                     <option value="">Select subcontractor</option>
@@ -400,30 +462,34 @@ export default function AddLaborPage({
                     variant="outline"
                     onClick={() => setShowNewSubForm((p) => !p)}
                     disabled={loading}
+                    className="border-2 hover:bg-blue-50 hover:border-blue-300"
                   >
                     + New
                   </Button>
                 </div>
                 {showNewSubForm && (
-                  <div className="space-y-2 rounded-md border border-gray-200 p-3 bg-white">
+                  <div className="space-y-3 rounded-lg border-2 border-blue-200 p-4 bg-blue-50/50">
+                    <h4 className="font-semibold text-gray-900 text-sm">Add New Subcontractor</h4>
                     <Input
-                      placeholder="Name"
+                      placeholder="Name *"
                       value={newSubName}
                       onChange={(e) => setNewSubName(e.target.value)}
                       disabled={loading}
+                      className="border-gray-300 bg-white"
                     />
                     <Input
                       placeholder="Phone (optional)"
                       value={newSubPhone}
                       onChange={(e) => setNewSubPhone(e.target.value)}
                       disabled={loading}
+                      className="border-gray-300 bg-white"
                     />
                     <textarea
                       placeholder="Notes (optional)"
                       value={newSubNotes}
                       onChange={(e) => setNewSubNotes(e.target.value)}
                       rows={2}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border-2 border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                       disabled={loading}
                     />
                     <div className="flex gap-2">
@@ -431,8 +497,10 @@ export default function AddLaborPage({
                         type="button"
                         onClick={handleCreateSubcontractor}
                         disabled={loading}
+                        className="gap-2"
                       >
-                        Save subcontractor
+                        <CheckCircle className="h-4 w-4" />
+                        Save Subcontractor
                       </Button>
                       <Button
                         type="button"
@@ -449,68 +517,91 @@ export default function AddLaborPage({
 
               {/* Payment */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="paymentMethod">Payment method</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="paymentMethod" className="text-sm font-semibold text-gray-900">
+                    Payment Method
+                  </Label>
                   <select
                     id="paymentMethod"
                     name="paymentMethod"
                     value={formData.paymentMethod}
                     onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    className="flex h-11 w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                     disabled={loading}
                   >
-                    <option value="cash">Cash</option>
-                    <option value="bank">Bank</option>
-                    <option value="mfs">bKash / MFS</option>
-                    <option value="advance">Advance</option>
+                    <option value="cash">💵 Cash</option>
+                    <option value="bank">🏦 Bank</option>
+                    <option value="mfs">📱 bKash / MFS</option>
+                    <option value="advance">📝 Advance</option>
                   </select>
                 </div>
-                <div>
-                  <Label htmlFor="paymentRef">Payment ref (optional)</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="paymentRef" className="text-sm font-semibold text-gray-900">
+                    Payment Reference
+                  </Label>
                   <Input
                     id="paymentRef"
                     name="paymentRef"
                     value={formData.paymentRef}
                     onChange={handleChange}
+                    placeholder="Ref no. (optional)"
                     disabled={loading}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               </div>
 
               {/* Notes */}
-              <div>
-                <Label htmlFor="notes">{labels.notes}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-sm font-semibold text-gray-900">
+                  {labels.notes}
+                </Label>
                 <textarea
                   id="notes"
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
                   rows={3}
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-                  placeholder="Notes"
+                  className="flex w-full rounded-lg border-2 border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                  placeholder="Additional notes or details"
                   disabled={loading}
                 />
               </div>
 
               {/* Total Display */}
               {(formData.khorakiTotal || formData.wageTotal) && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="font-semibold text-slate-800">
-                    Base: {formatCurrency(baseTotal || 0)}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <DollarSign className="h-5 w-5 text-blue-600" />
+                    <h4 className="font-semibold text-gray-900">Cost Summary</h4>
                   </div>
-                  {fee > 0 && (
-                    <div className="text-sm text-slate-700 mt-1">
-                      bKash fee (1.85% + 10): {formatCurrency(fee)}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-gray-700">
+                      <span>Base Amount:</span>
+                      <span className="font-semibold text-lg">{formatCurrency(baseTotal || 0)}</span>
                     </div>
-                  )}
-                  <div className="text-sm text-slate-900 mt-1">
-                    Your project cost: {formatCurrency(baseTotal + fee)}
+                    {fee > 0 && (
+                      <div className="flex justify-between items-center text-sm text-gray-600">
+                        <span>bKash Fee (1.85% + ৳10):</span>
+                        <span className="font-medium">{formatCurrency(fee)}</span>
+                      </div>
+                    )}
+                    <div className="pt-2 border-t-2 border-blue-300 flex justify-between items-center">
+                      <span className="font-semibold text-gray-900">Total Project Cost:</span>
+                      <span className="font-bold text-2xl text-blue-600">{formatCurrency(baseTotal + fee)}</span>
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={loading} className="flex-1">
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="flex-1 h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all gap-2"
+                >
+                  <CheckCircle className="h-5 w-5" />
                   {loading ? labels.loading : labels.save}
                 </Button>
                 <Button
@@ -518,6 +609,7 @@ export default function AddLaborPage({
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={loading}
+                  className="h-12 px-8 border-2 hover:bg-gray-50"
                 >
                   {labels.cancel}
                 </Button>

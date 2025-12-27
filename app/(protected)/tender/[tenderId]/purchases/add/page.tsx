@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export default function AddPurchasePage({
   params: { tenderId: string };
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
@@ -23,6 +24,8 @@ export default function AddPurchasePage({
   const [vendors, setVendors] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [recentItems, setRecentItems] = useState<any[]>([]);
+  const [vendorProducts, setVendorProducts] = useState<any[]>([]);
 
   const [purchaseType, setPurchaseType] = useState<"material" | "vendor">(
     "material"
@@ -34,7 +37,7 @@ export default function AddPurchasePage({
     vendorId: "",
     newVendorName: "",
     newVendorPhone: "",
-    newVendorCategory: "",
+    newVendorCategoryIds: [] as string[],
     materialId: "",
     customItemName: "",
     quantity: "",
@@ -77,7 +80,56 @@ export default function AddPurchasePage({
     setVendors(vendorsRes.data || []);
     setMaterials(materialsRes.data || []);
     setCategories(categoriesRes.data || []);
+    
+    // Auto-select vendor if provided in URL
+    const preselectedVendorId = searchParams.get("vendor");
+    if (preselectedVendorId && vendorsRes.data) {
+      const vendor = vendorsRes.data.find((v: any) => v.id === preselectedVendorId);
+      if (vendor) {
+        setFormData((prev) => ({
+          ...prev,
+          vendorId: preselectedVendorId,
+        }));
+        // Set purchase type to vendor if coming from vendor page
+        setPurchaseType("vendor");
+        // Load recent items for this vendor
+        await loadRecentItems(preselectedVendorId);
+      }
+    }
+    
     setLoadingData(false);
+  };
+
+  const loadRecentItems = async (vendorId: string) => {
+    const supabase = createClient();
+    
+    // Get vendor products
+    const { data: productsData } = await supabase
+      .from("vendor_products")
+      .select("*, materials(name_bn)")
+      .eq("vendor_id", vendorId)
+      .order("last_unit_price", { ascending: false });
+    
+    if (productsData) {
+      setVendorProducts(productsData);
+    }
+    
+    // Get recent purchases from this vendor
+    const { data } = await supabase
+      .from("vendor_purchases")
+      .select("item_name, unit, unit_price")
+      .eq("vendor_id", vendorId)
+      .not("item_name", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    
+    if (data) {
+      // Get unique items
+      const uniqueItems = Array.from(
+        new Map(data.map(item => [item.item_name, item])).values()
+      );
+      setRecentItems(uniqueItems);
+    }
   };
 
   const handleChange = (
@@ -87,6 +139,11 @@ export default function AddPurchasePage({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Load recent items when vendor changes
+    if (name === "vendorId" && value) {
+      loadRecentItems(value);
+    }
 
     // Auto-calculate total
     if (
@@ -149,7 +206,7 @@ export default function AddPurchasePage({
           .insert({
             name: formData.newVendorName,
             phone: formData.newVendorPhone || null,
-            category_id: formData.newVendorCategory || null,
+            category_id: null, // Keep for backward compatibility
             tender_id: params.tenderId,
             created_by: auth.user.id,
           })
@@ -158,6 +215,16 @@ export default function AddPurchasePage({
 
         if (vendorError) throw vendorError;
         vendorId = newVendor.id;
+
+        // Insert category mappings if any selected
+        if (formData.newVendorCategoryIds.length > 0) {
+          await supabase.from("vendor_category_mappings").insert(
+            formData.newVendorCategoryIds.map((catId) => ({
+              vendor_id: newVendor.id,
+              category_id: catId,
+            }))
+          );
+        }
       }
 
       if (purchaseType === "material") {
@@ -231,12 +298,14 @@ export default function AddPurchasePage({
             quantity: parseFloat(formData.quantity),
             unit: formData.unit,
             unit_price: parseFloat(formData.unitRate),
-            total_amount: parseFloat(formData.totalAmount),
-            transport_vara_cost: formData.transportCost
+            base_cost: parseFloat(formData.quantity) * parseFloat(formData.unitRate),
+            transport_cost: formData.transportCost
               ? parseFloat(formData.transportCost)
               : null,
-            payment_method: formData.paymentMethod,
-            payment_ref: formData.paymentRef || null,
+            unload_cost: formData.unloadCost
+              ? parseFloat(formData.unloadCost)
+              : null,
+            total_cost: parseFloat(formData.totalAmount),
             notes: formData.notes || null,
             created_by: auth.user.id,
           })
@@ -395,19 +464,41 @@ export default function AddPurchasePage({
                         value={formData.newVendorPhone}
                         onChange={handleChange}
                       />
-                      <select
-                        name="newVendorCategory"
-                        value={formData.newVendorCategory}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded-md"
-                      >
-                        <option value="">Category (optional)</option>
-                        {categories.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name_bn || c.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div>
+                        <Label className="text-xs mb-2 block">Categories (select multiple)</Label>
+                        <div className="bg-white border rounded-md p-3 max-h-40 overflow-y-auto">
+                          <div className="grid grid-cols-2 gap-2">
+                            {categories.map((c) => (
+                              <label
+                                key={c.id}
+                                className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1.5 rounded text-sm"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={formData.newVendorCategoryIds.includes(c.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormData((p) => ({
+                                        ...p,
+                                        newVendorCategoryIds: [...p.newVendorCategoryIds, c.id],
+                                      }));
+                                    } else {
+                                      setFormData((p) => ({
+                                        ...p,
+                                        newVendorCategoryIds: p.newVendorCategoryIds.filter(
+                                          (id) => id !== c.id
+                                        ),
+                                      }));
+                                    }
+                                  }}
+                                  className="rounded"
+                                />
+                                <span>{c.name_bn || c.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <select
@@ -453,18 +544,71 @@ export default function AddPurchasePage({
               )}
 
               {(!formData.materialId || purchaseType === "vendor") && (
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="customItemName">
                     {purchaseType === "material"
                       ? "Custom Item Name"
                       : "Item Name *"}
                   </Label>
+                  
+                  {/* Show vendor products dropdown if vendor is selected */}
+                  {purchaseType === "vendor" && vendorProducts.length > 0 && (
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const selectedProduct = vendorProducts.find(p => p.item_name === e.target.value);
+                        if (selectedProduct) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            customItemName: selectedProduct.item_name,
+                            unit: selectedProduct.unit || prev.unit,
+                            unitRate: selectedProduct.last_unit_price?.toString() || prev.unitRate,
+                          }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 border rounded-md bg-white mb-2"
+                    >
+                      <option value="">Select from vendor products...</option>
+                      {vendorProducts.map((p, idx) => (
+                        <option key={idx} value={p.item_name}>
+                          {p.item_name} {p.materials?.name_bn && `(${p.materials.name_bn})`} - ৳{p.last_unit_price}/{p.unit}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  
+                  {/* Show recent items if vendor is selected and has history */}
+                  {purchaseType === "vendor" && recentItems.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-xs text-gray-600 mb-1">Recent purchases:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {recentItems.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                customItemName: item.item_name,
+                                unit: item.unit || prev.unit,
+                                unitRate: item.unit_price?.toString() || prev.unitRate,
+                              }));
+                            }}
+                            className="px-3 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-full transition-colors"
+                          >
+                            {item.item_name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <Input
                     id="customItemName"
                     name="customItemName"
                     value={formData.customItemName}
                     onChange={handleChange}
-                    placeholder="Enter item name"
+                    placeholder="Or type custom item name"
                     required={purchaseType === "vendor" || !formData.materialId}
                   />
                 </div>

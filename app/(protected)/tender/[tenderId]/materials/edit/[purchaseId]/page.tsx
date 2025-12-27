@@ -19,7 +19,9 @@ export default function EditMaterialPurchasePage({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [vendors, setVendors] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
 
+  const [materialId, setMaterialId] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [customItemName, setCustomItemName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -32,6 +34,7 @@ export default function EditMaterialPurchasePage({
   useEffect(() => {
     loadPurchase();
     loadVendors();
+    loadMaterials();
   }, []);
 
   const loadPurchase = async () => {
@@ -39,13 +42,14 @@ export default function EditMaterialPurchasePage({
       const supabase = createClient();
       const { data, error } = await supabase
         .from("material_purchases")
-        .select("*")
+        .select("*, materials(name_bn, unit_bn)")
         .eq("id", params.purchaseId)
         .single();
 
       if (error) throw error;
 
       if (data) {
+        setMaterialId(data.material_id || "");
         setPurchaseDate(data.purchase_date);
         setCustomItemName(data.custom_item_name || "");
         setQuantity(data.quantity?.toString() || "");
@@ -74,6 +78,17 @@ export default function EditMaterialPurchasePage({
     if (data) setVendors(data);
   };
 
+  const loadMaterials = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("materials")
+      .select("id, name_bn, unit_bn")
+      .eq("is_active", true)
+      .order("name_bn");
+
+    if (data) setMaterials(data);
+  };
+
   const handleVendorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedVendorId = e.target.value;
     setVendorId(selectedVendorId);
@@ -100,7 +115,8 @@ export default function EditMaterialPurchasePage({
         .from("material_purchases")
         .update({
           purchase_date: purchaseDate,
-          custom_item_name: customItemName,
+          material_id: materialId || null,
+          custom_item_name: customItemName || null,
           quantity: parseFloat(quantity),
           unit: unit,
           supplier: supplier || null,
@@ -163,14 +179,47 @@ export default function EditMaterialPurchasePage({
               </div>
 
               <div>
-                <Label>মালামালের নাম *</Label>
-                <Input
-                  value={customItemName}
-                  onChange={(e) => setCustomItemName(e.target.value)}
-                  placeholder="যেমন: সিমেন্ট, বালু, রড"
-                  required
-                />
+                <Label>মালামাল নির্বাচন করুন</Label>
+                <select
+                  value={materialId}
+                  onChange={(e) => {
+                    const selectedMaterialId = e.target.value;
+                    setMaterialId(selectedMaterialId);
+                    
+                    if (selectedMaterialId) {
+                      const material = materials.find((m) => m.id === selectedMaterialId);
+                      if (material) {
+                        setCustomItemName("");
+                        setUnit(material.unit_bn || "");
+                      }
+                    }
+                  }}
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                  disabled={saving}
+                >
+                  <option value="">মালামাল নির্বাচন করুন বা নিচে কাস্টম নাম লিখুন</option>
+                  {materials.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name_bn}
+                    </option>
+                  ))}
+                </select>
               </div>
+
+              {!materialId && (
+                <div>
+                  <Label>কাস্টম মালামালের নাম *</Label>
+                  <Input
+                    value={customItemName}
+                    onChange={(e) => setCustomItemName(e.target.value)}
+                    placeholder="যেমন: সিমেন্ট, বালু, রড"
+                    required={!materialId}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    উপরে তালিকা থেকে নির্বাচন করুন বা এখানে কাস্টম নাম লিখুন
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>

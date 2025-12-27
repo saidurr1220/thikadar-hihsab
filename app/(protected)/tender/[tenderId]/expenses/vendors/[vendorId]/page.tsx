@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowLeft, CreditCard, FileText, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,10 +17,12 @@ export default function VendorLedgerPage({
   params: { tenderId: string; vendorId: string };
 }) {
   const supabase = createClient();
+  const searchParams = useSearchParams();
 
   const [vendor, setVendor] = useState<any>(null);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [recentItems, setRecentItems] = useState<any[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -79,8 +82,27 @@ export default function VendorLedgerPage({
 
   useEffect(() => {
     loadAll();
+    loadRecentItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadRecentItems = async () => {
+    const { data } = await supabase
+      .from("vendor_purchases")
+      .select("item_name, unit, unit_price")
+      .eq("vendor_id", params.vendorId)
+      .not("item_name", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    
+    if (data) {
+      // Get unique items
+      const uniqueItems = Array.from(
+        new Map(data.map(item => [item.item_name, item])).values()
+      );
+      setRecentItems(uniqueItems);
+    }
+  };
 
   const loadAll = async () => {
     setLoading(true);
@@ -341,8 +363,35 @@ export default function VendorLedgerPage({
                       }
                     />
                   </div>
-                  <div>
+                  <div className="md:col-span-2 space-y-2">
                     <Label>Item</Label>
+                    
+                    {/* Show recent items if available */}
+                    {recentItems.length > 0 && (
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-600 mb-1">Recent items from this vendor:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {recentItems.map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setPurchaseForm((p) => ({
+                                  ...p,
+                                  item: item.item_name,
+                                  unit: item.unit || p.unit,
+                                  unitPrice: item.unit_price?.toString() || p.unitPrice,
+                                }));
+                              }}
+                              className="px-3 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-full transition-colors"
+                            >
+                              {item.item_name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <Input
                       placeholder="Sand / Cement / Service"
                       value={purchaseForm.item}

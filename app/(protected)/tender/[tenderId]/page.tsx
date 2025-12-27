@@ -12,7 +12,12 @@ import {
   Settings,
   Truck,
   Users,
-  Wallet,
+  TrendingUp,
+  DollarSign,
+  ShoppingCart,
+  Wrench,
+  Building2,
+  BarChart3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -84,42 +89,49 @@ export default async function TenderDashboardPage({
     laborTotal + materialsTotal + activitiesTotal + rollupTotal;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(254,243,199,0.6),rgba(255,255,255,0))]">
-      <div className="bg-gradient-to-br from-amber-50 via-white to-slate-50">
-        <header className="border-b border-slate-200/70 bg-white/70 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:pl-8 pl-20">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div className="space-y-2 text-center lg:text-left">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30">
+      <div>
+        <header className="border-b border-slate-200/70 bg-white/80 backdrop-blur-sm shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-3">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to dashboard
                 </Link>
-                <h1 className="text-3xl font-bold text-slate-900">
-                  {tender.project_name}
-                </h1>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
-                    Tender {tender.tender_code}
-                  </span>
-                  {tender.location ? (
-                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700">
-                      {tender.location}
-                    </span>
-                  ) : null}
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
+                    <Building2 className="h-7 w-7 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-slate-900">
+                      {tender.project_name}
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      <span className="rounded-full border-2 border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+                        {tender.tender_code}
+                      </span>
+                      {tender.location ? (
+                        <span className="rounded-full border-2 border-amber-200 bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">
+                          📍 {tender.location}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <Link href={`/tender/${params.tenderId}/reports`}>
-                  <Button variant="outline" className="gap-2">
-                    <FileText className="h-4 w-4" />
+                  <Button variant="outline" className="gap-2 border-2 hover:bg-blue-50 hover:border-blue-300 transition-all">
+                    <BarChart3 className="h-4 w-4" />
                     Reports
                   </Button>
                 </Link>
                 <Link href={`/tender/${params.tenderId}/settings`}>
-                  <Button className="gap-2">
+                  <Button className="gap-2 bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all">
                     <Settings className="h-4 w-4" />
                     Settings
                   </Button>
@@ -130,182 +142,192 @@ export default async function TenderDashboardPage({
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-          <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6">
-            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                  All time
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <Card className="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-indigo-100 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Total Expenses
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-3xl font-bold">
                   {formatCurrency(grandTotal)}
                 </p>
-                <p className="text-sm text-slate-500 mt-1">Total expenses</p>
+                <p className="text-sm text-indigo-100 mt-1">All-time total</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs uppercase tracking-[0.2em] text-slate-500">
+            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-blue-100 flex items-center gap-2">
+                  <HardHat className="h-4 w-4" />
                   Labor
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold">
                   {formatCurrency(laborTotal)}
                 </p>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-blue-100 mt-1">
                   {grandTotal > 0
-                    ? `${((laborTotal / grandTotal) * 100).toFixed(1)}% share`
-                    : "0% share"}
+                    ? `${((laborTotal / grandTotal) * 100).toFixed(1)}% of total`
+                    : "0% of total"}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs uppercase tracking-[0.2em] text-slate-500">
+            <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-green-100 flex items-center gap-2">
+                  <Package className="h-4 w-4" />
                   Materials
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold">
                   {formatCurrency(materialsTotal)}
                 </p>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-green-100 mt-1">
                   {grandTotal > 0
                     ? `${((materialsTotal / grandTotal) * 100).toFixed(
                         1
-                      )}% share`
-                    : "0% share"}
+                      )}% of total`
+                    : "0% of total"}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs uppercase tracking-[0.2em] text-slate-500">
+            <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-amber-100 flex items-center gap-2">
+                  <Wrench className="h-4 w-4" />
                   Activities
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold">
                   {formatCurrency(activitiesTotal)}
                 </p>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-amber-100 mt-1">
                   {grandTotal > 0
                     ? `${((activitiesTotal / grandTotal) * 100).toFixed(
                         1
-                      )}% share`
-                    : "0% share"}
+                      )}% of total`
+                    : "0% of total"}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs uppercase tracking-[0.2em] text-slate-500">
+            <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-purple-100 flex items-center gap-2">
+                  <ShoppingCart className="h-4 w-4" />
                   Vendors
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold">
                   {formatCurrency(vendorTotal)}
                 </p>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-purple-100 mt-1">
                   {grandTotal > 0
-                    ? `${((vendorTotal / grandTotal) * 100).toFixed(1)}% share`
-                    : "0% share"}
+                    ? `${((vendorTotal / grandTotal) * 100).toFixed(1)}% of total`
+                    : "0% of total"}
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs uppercase tracking-[0.2em] text-slate-500">
-                  Other expenses
+            <Card className="bg-gradient-to-br from-slate-500 to-slate-600 text-white border-0 shadow-lg hover:shadow-xl transition-all">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-slate-100 flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Other
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold">
                   {formatCurrency(otherTotal)}
                 </p>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-100 mt-1">
                   {grandTotal > 0
-                    ? `${((otherTotal / grandTotal) * 100).toFixed(1)}% share`
-                    : "0% share"}
+                    ? `${((otherTotal / grandTotal) * 100).toFixed(1)}% of total`
+                    : "0% of total"}
                 </p>
               </CardContent>
             </Card>
           </section>
 
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-slate-900">
-                  Quick access
+            <Card className="lg:col-span-2 bg-white border-slate-200 shadow-md">
+              <CardHeader className="border-b border-slate-100">
+                <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <Coins className="h-5 w-5 text-blue-600" />
+                  Quick Actions
                 </CardTitle>
+                <p className="text-sm text-gray-500 mt-1">Fast access to common operations</p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <Link href={`/tender/${params.tenderId}/labor/add`}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <HardHat className="h-4 w-4" />
-                      Add labor
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-blue-50 hover:border-blue-300 hover:shadow-md transition-all">
+                      <HardHat className="h-5 w-5 text-blue-600" />
+                      Add Labor
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/purchases/add`}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <Package className="h-4 w-4" />
-                      Add purchase
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-green-50 hover:border-green-300 hover:shadow-md transition-all">
+                      <Package className="h-5 w-5 text-green-600" />
+                      Add Purchase
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/activities/add`}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <ClipboardList className="h-4 w-4" />
-                      Add activity
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-amber-50 hover:border-amber-300 hover:shadow-md transition-all">
+                      <ClipboardList className="h-5 w-5 text-amber-600" />
+                      Add Activity
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/advances/people`}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <Users className="h-4 w-4" />
-                      Staff advances
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-purple-50 hover:border-purple-300 hover:shadow-md transition-all">
+                      <Users className="h-5 w-5 text-purple-600" />
+                      Staff Advances
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/purchases`}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <Truck className="h-4 w-4" />
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-indigo-50 hover:border-indigo-300 hover:shadow-md transition-all">
+                      <Truck className="h-5 w-5 text-indigo-600" />
                       Purchases
                     </Button>
                   </Link>
                   <Link href={`/tender/${params.tenderId}/expenses/overview`}>
-                    <Button variant="outline" className="w-full gap-2">
-                      <Coins className="h-4 w-4" />
-                      Expense overview
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all">
+                      <Coins className="h-5 w-5 text-slate-600" />
+                      Overview
                     </Button>
                   </Link>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/80 border-slate-200/70 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-slate-900">
-                  Balance view
+            <Card className="bg-white border-slate-200 shadow-md">
+              <CardHeader className="border-b border-slate-100">
+                <CardTitle className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-green-600" />
+                  Balance Reports
                 </CardTitle>
+                <p className="text-sm text-gray-500 mt-1">View outstanding balances</p>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Link href={`/tender/${params.tenderId}/ledger-summary`}>
-                  <Button variant="outline" className="w-full gap-2">
-                    <FileText className="h-4 w-4" />
-                    Ledger summary
+              <CardContent className="pt-6 space-y-3">
+                <Link href={`/tender/${params.tenderId}/advances/people`}>
+                  <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-purple-50 hover:border-purple-300 hover:shadow-md transition-all">
+                    <Users className="h-5 w-5 text-purple-600" />
+                    Staff Balances
                   </Button>
                 </Link>
-                <Link href={`/tender/${params.tenderId}/advances`}>
-                  <Button variant="outline" className="w-full gap-2">
-                    <Wallet className="h-4 w-4" />
-                    Advance ledger
+                <Link href={`/tender/${params.tenderId}/purchases`}>
+                  <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:bg-indigo-50 hover:border-indigo-300 hover:shadow-md transition-all">
+                    <Truck className="h-5 w-5 text-indigo-600" />
+                    Vendor Balances
                   </Button>
                 </Link>
               </CardContent>
@@ -314,15 +336,17 @@ export default async function TenderDashboardPage({
 
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link href={`/tender/${params.tenderId}/labor`}>
-              <Card className="group cursor-pointer bg-white/80 border-slate-200/70 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              <Card className="group cursor-pointer bg-white border-slate-200 shadow-md transition-all hover:-translate-y-2 hover:shadow-xl hover:border-blue-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
-                    <HardHat className="h-5 w-5 text-amber-500" />
-                    Labor register
+                  <CardTitle className="flex items-center gap-3 text-slate-900 group-hover:text-blue-600 transition-colors">
+                    <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                      <HardHat className="h-6 w-6 text-blue-600" />
+                    </div>
+                    Labor Register
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600 leading-relaxed">
                     Daily crews, wages, and food allowance tracking.
                   </p>
                 </CardContent>
@@ -330,15 +354,17 @@ export default async function TenderDashboardPage({
             </Link>
 
             <Link href={`/tender/${params.tenderId}/purchases`}>
-              <Card className="group cursor-pointer bg-white/80 border-slate-200/70 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              <Card className="group cursor-pointer bg-white border-slate-200 shadow-md transition-all hover:-translate-y-2 hover:shadow-xl hover:border-green-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
-                    <Package className="h-5 w-5 text-sky-500" />
+                  <CardTitle className="flex items-center gap-3 text-slate-900 group-hover:text-green-600 transition-colors">
+                    <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                      <Package className="h-6 w-6 text-green-600" />
+                    </div>
                     Purchases & Vendors
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600 leading-relaxed">
                     Unified purchase management with vendor profiles and transactions.
                   </p>
                 </CardContent>
@@ -346,15 +372,17 @@ export default async function TenderDashboardPage({
             </Link>
 
             <Link href={`/tender/${params.tenderId}/activities`}>
-              <Card className="group cursor-pointer bg-white/80 border-slate-200/70 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              <Card className="group cursor-pointer bg-white border-slate-200 shadow-md transition-all hover:-translate-y-2 hover:shadow-xl hover:border-amber-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
-                    <ClipboardList className="h-5 w-5 text-emerald-500" />
-                    Activity register
+                  <CardTitle className="flex items-center gap-3 text-slate-900 group-hover:text-amber-600 transition-colors">
+                    <div className="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
+                      <ClipboardList className="h-6 w-6 text-amber-600" />
+                    </div>
+                    Activity Register
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600 leading-relaxed">
                     Track operational work and site activity costs.
                   </p>
                 </CardContent>
@@ -362,32 +390,36 @@ export default async function TenderDashboardPage({
             </Link>
 
             <Link href={`/tender/${params.tenderId}/advances/people`}>
-              <Card className="group cursor-pointer bg-white/80 border-slate-200/70 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              <Card className="group cursor-pointer bg-white border-slate-200 shadow-md transition-all hover:-translate-y-2 hover:shadow-xl hover:border-purple-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
-                    <Users className="h-5 w-5 text-violet-500" />
-                    Staff advances
+                  <CardTitle className="flex items-center gap-3 text-slate-900 group-hover:text-purple-600 transition-colors">
+                    <div className="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                      <Users className="h-6 w-6 text-purple-600" />
+                    </div>
+                    Staff Advances
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600 leading-relaxed">
                     Split view of staff advances and expenses.
                   </p>
                 </CardContent>
               </Card>
             </Link>
 
-            <Link href={`/tender/${params.tenderId}/ledger-summary`}>
-              <Card className="group cursor-pointer bg-white/80 border-slate-200/70 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+            <Link href={`/tender/${params.tenderId}/expenses/overview`}>
+              <Card className="group cursor-pointer bg-white border-slate-200 shadow-md transition-all hover:-translate-y-2 hover:shadow-xl hover:border-slate-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-slate-900">
-                    <FileText className="h-5 w-5 text-slate-600" />
-                    Ledger summary
+                  <CardTitle className="flex items-center gap-3 text-slate-900 group-hover:text-slate-600 transition-colors">
+                    <div className="p-2 bg-slate-100 rounded-lg group-hover:bg-slate-200 transition-colors">
+                      <FileText className="h-6 w-6 text-slate-600" />
+                    </div>
+                    Expense Overview
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-slate-500">
-                    Combined balances across people and vendors.
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Comprehensive overview of all project expenses.
                   </p>
                 </CardContent>
               </Card>

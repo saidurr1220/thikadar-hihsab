@@ -263,7 +263,7 @@ export default function GiveAdvancePage({
 
         <Card>
           <CardHeader>
-            <CardTitle>অগ্রিম প্রদান করুন</CardTitle>
+            <CardTitle>নতুন ব্যক্তি যোগ করুন / অগ্রিম দিন</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
