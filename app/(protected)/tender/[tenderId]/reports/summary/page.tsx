@@ -2,9 +2,6 @@
 
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { labels } from "@/lib/utils/bangla";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
 import { useEffect, useState } from "react";
 import { Printer, Share2 } from "lucide-react";
@@ -22,9 +19,9 @@ function PrintButtons() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'টেন্ডার সারসংক্ষেপ',
-          text: 'টেন্ডার রিপোর্ট দেখুন',
-          url: url,
+          title: "টেন্ডার সারসংক্ষেপ",
+          text: "টেন্ডার রিপোর্ট দেখুন",
+          url,
         });
       } catch (err) {
         copyLink(url);
@@ -37,7 +34,7 @@ function PrintButtons() {
 
   const copyLink = (url: string) => {
     navigator.clipboard.writeText(url);
-    alert('লিংক কপি হয়েছে!');
+    alert("লিংক কপি হয়েছে!");
   };
 
   return (
@@ -92,7 +89,6 @@ export default function TenderSummaryPage({
     const loadData = async () => {
       const supabase = createClient();
 
-      // Load tender info
       const { data: tenderData } = await supabase
         .from("tenders")
         .select("*")
@@ -100,24 +96,25 @@ export default function TenderSummaryPage({
         .single();
       setTender(tenderData);
 
-      // Load all data
       const { data: laborData } = await supabase
         .from("labor_entries")
         .select("*")
-        .eq("tender_id", params.tenderId);
+        .eq("tender_id", params.tenderId)
+        .order("entry_date", { ascending: false });
       setLabor(laborData || []);
 
       const { data: materialsData } = await supabase
         .from("material_purchases")
-        .select("*, materials(name_bn)")
-        .eq("tender_id", params.tenderId);
+        .select("*, materials(name_bn), vendors(name)")
+        .eq("tender_id", params.tenderId)
+        .order("purchase_date", { ascending: false });
       setMaterials(materialsData || []);
 
-      // Load vendor purchases
       const { data: vendorPurchasesData } = await supabase
         .from("vendor_purchases")
         .select("*, vendors(name)")
-        .eq("tender_id", params.tenderId);
+        .eq("tender_id", params.tenderId)
+        .order("purchase_date", { ascending: false });
       setVendorPurchases(vendorPurchasesData || []);
 
       const { data: activitiesData } = await supabase
@@ -125,7 +122,8 @@ export default function TenderSummaryPage({
         .select(
           "*, activity_categories!activity_expenses_category_id_fkey(name_bn)"
         )
-        .eq("tender_id", params.tenderId);
+        .eq("tender_id", params.tenderId)
+        .order("expense_date", { ascending: false });
       setActivities(activitiesData || []);
 
       const { data: advancesData } = await supabase
@@ -140,51 +138,53 @@ export default function TenderSummaryPage({
         .eq("tender_id", params.tenderId);
       setExpenses(expensesData || []);
 
-      // Load rollup expenses (person_expenses + MFS charges)
       const { data: rollupData } = await supabase
         .from("expense_rollup")
         .select("amount, source_type")
         .eq("tender_id", params.tenderId);
       setRollupExpenses(rollupData || []);
 
-      // Person balances - Calculate manually instead of using RPC
       const { data: personAdvancesData } = await supabase
         .from("person_advances")
-        .select(`
+        .select(
+          `
           *,
           user:profiles!person_advances_user_id_fkey (full_name),
           person:persons!person_advances_person_id_fkey (full_name, role)
-        `)
+        `
+        )
         .eq("tender_id", params.tenderId);
 
       const { data: personExpensesData } = await supabase
         .from("person_expenses")
-        .select(`
+        .select(
+          `
           *,
           user:profiles!person_expenses_user_id_fkey (full_name),
           person:persons!person_expenses_person_id_fkey (full_name, role)
-        `)
+        `
+        )
         .eq("tender_id", params.tenderId);
 
-      // Calculate person-wise summary manually
       const personBalanceMap = new Map();
-      
+
       personAdvancesData?.forEach((adv: any) => {
         const personId = adv.user_id || adv.person_id;
-        const personName = adv.user?.full_name || adv.person?.full_name || "Unknown";
+        const personName =
+          adv.user?.full_name || adv.person?.full_name || "অজানা";
         const role = adv.person?.role || "staff";
-        
+
         if (!personBalanceMap.has(personId)) {
           personBalanceMap.set(personId, {
             person_id: personId,
             person_name: personName,
-            role: role,
+            role,
             total_advances: 0,
             total_expenses: 0,
-            balance: 0
+            balance: 0,
           });
         }
-        
+
         const balance = personBalanceMap.get(personId);
         balance.total_advances += Number(adv.amount || 0);
         balance.balance += Number(adv.amount || 0);
@@ -192,30 +192,29 @@ export default function TenderSummaryPage({
 
       personExpensesData?.forEach((exp: any) => {
         const personId = exp.user_id || exp.person_id;
-        const personName = exp.user?.full_name || exp.person?.full_name || "Unknown";
+        const personName =
+          exp.user?.full_name || exp.person?.full_name || "অজানা";
         const role = exp.person?.role || "staff";
-        
+
         if (!personBalanceMap.has(personId)) {
           personBalanceMap.set(personId, {
             person_id: personId,
             person_name: personName,
-            role: role,
+            role,
             total_advances: 0,
             total_expenses: 0,
-            balance: 0
+            balance: 0,
           });
         }
-        
+
         const balance = personBalanceMap.get(personId);
         balance.total_expenses += Number(exp.amount || 0);
         balance.balance -= Number(exp.amount || 0);
       });
 
       const calculatedBalances = Array.from(personBalanceMap.values());
-      console.log("Calculated balances:", calculatedBalances);
-      
-      setBalances(calculatedBalances);
 
+      setBalances(calculatedBalances);
       setLoading(false);
     };
 
@@ -224,7 +223,7 @@ export default function TenderSummaryPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 py-8 flex items-center justify-center">
         <div className="text-center">
           <div className="text-lg">লোড হচ্ছে...</div>
         </div>
@@ -232,7 +231,6 @@ export default function TenderSummaryPage({
     );
   }
 
-  // Calculate totals
   const laborTotal =
     labor?.reduce(
       (sum, l) =>
@@ -252,7 +250,6 @@ export default function TenderSummaryPage({
   const expensesTotal =
     expenses?.reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
 
-  // Calculate rollup expenses (person_expenses + MFS charges, excluding vendor_purchase)
   const rollupTotal =
     rollupExpenses?.reduce((sum, e) => sum + Number(e.amount || 0), 0) || 0;
   const vendorRollupTotal =
@@ -265,49 +262,106 @@ export default function TenderSummaryPage({
     laborTotal + totalMaterials + activitiesTotal + otherExpensesTotal;
   const pendingAdvances = advancesTotal - expensesTotal;
 
-  // Top materials (including vendor purchases)
-  const materialsByItem = materials?.reduce((acc: any, m) => {
-    const name = m.materials?.name_bn || m.custom_item_name;
-    if (!acc[name]) {
-      acc[name] = { name, quantity: 0, unit: m.unit, total: 0 };
+  const vendorsByName: Record<
+    string,
+    {
+      name: string;
+      total: number;
+      items: Record<
+        string,
+        { item: string; quantity: number; unit: string; amount: number }
+      >;
     }
-    acc[name].quantity += Number(m.quantity || 0);
-    acc[name].total += Number(m.total_amount || 0);
-    return acc;
-  }, {});
+  > = {};
 
-  // Add vendor purchases to materials
-  vendorPurchases?.forEach((v) => {
-    const name = v.item_name || "ভেন্ডর ক্রয়";
-    if (!materialsByItem[name]) {
-      materialsByItem[name] = {
-        name,
+  const addVendorItem = (
+    vendorName: string,
+    itemName: string,
+    quantity: number,
+    unit: string,
+    amount: number
+  ) => {
+    const safeVendor = vendorName || "অজানা ভেন্ডার";
+    const safeItem = itemName || "অজানা মালামাল";
+    if (!vendorsByName[safeVendor]) {
+      vendorsByName[safeVendor] = { name: safeVendor, total: 0, items: {} };
+    }
+    const key = `${safeItem}__${unit || ""}`;
+    if (!vendorsByName[safeVendor].items[key]) {
+      vendorsByName[safeVendor].items[key] = {
+        item: safeItem,
         quantity: 0,
-        unit: v.unit || "",
-        total: 0,
+        unit: unit || "",
+        amount: 0,
       };
     }
-    if (v.quantity) {
-      materialsByItem[name].quantity += Number(v.quantity || 0);
-    }
-    materialsByItem[name].total += Number(v.total_cost || 0);
+    const entry = vendorsByName[safeVendor].items[key];
+    entry.quantity += Number(quantity || 0);
+    entry.amount += Number(amount || 0);
+    vendorsByName[safeVendor].total += Number(amount || 0);
+  };
+
+  materials?.forEach((m) => {
+    const vendorName = m.vendors?.name || m.supplier || "অজানা ভেন্ডার";
+    const itemName =
+      m.materials?.name_bn || m.custom_item_name || "অজানা মালামাল";
+    addVendorItem(
+      vendorName,
+      itemName,
+      Number(m.quantity || 0),
+      m.unit || "",
+      Number(m.total_amount || 0)
+    );
   });
 
-  const topMaterials = Object.values(materialsByItem || {})
-    .sort((a: any, b: any) => b.total - a.total)
-    .slice(0, 5);
+  vendorPurchases?.forEach((v) => {
+    const vendorName = v.vendors?.name || "অজানা ভেন্ডার";
+    addVendorItem(
+      vendorName,
+      v.item_name || "অজানা মালামাল",
+      Number(v.quantity || 0),
+      v.unit || "",
+      Number(v.total_cost || 0)
+    );
+  });
 
-  // Top activities by category
-  const activitiesByCategory = activities?.reduce((acc: any, a) => {
+  const activityTotals = activities?.reduce((acc: any, a) => {
     const cat = a.activity_categories?.name_bn || "অন্যান্য";
-    if (!acc[cat]) acc[cat] = 0;
+    if (!acc[cat]) {
+      acc[cat] = 0;
+    }
     acc[cat] += Number(a.amount || 0);
     return acc;
   }, {});
 
-  const topActivities = Object.entries(activitiesByCategory || {})
-    .sort(([, a]: any, [, b]: any) => b - a)
-    .slice(0, 5);
+  const sortedVendors = Object.values(vendorsByName || {})
+    .map((vendor: any) => ({
+      ...vendor,
+      items: Object.values(vendor.items || {}).sort(
+        (a: any, b: any) => b.amount - a.amount
+      ),
+    }))
+    .sort((a: any, b: any) => b.total - a.total);
+
+  const sortedActivities = Object.entries(activityTotals || {})
+    .map(([category, total]) => ({
+      category,
+      total: Number(total || 0),
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  const sortedBalances = [...(balances || [])].sort(
+    (a, b) => Number(b.total_advances || 0) - Number(a.total_advances || 0)
+  );
+
+  const maxVendors = 8;
+  const maxVendorItems = 4;
+  const maxActivities = 6;
+  const maxBalances = 8;
+
+  const visibleVendors = sortedVendors.slice(0, maxVendors);
+  const visibleActivities = sortedActivities.slice(0, maxActivities);
+  const visibleBalances = sortedBalances.slice(0, maxBalances);
 
   const laborPercent = grandTotal > 0 ? (laborTotal / grandTotal) * 100 : 0;
   const materialsPercent =
@@ -318,486 +372,418 @@ export default function TenderSummaryPage({
     grandTotal > 0 ? (otherExpensesTotal / grandTotal) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-slate-50 py-6">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="mb-6 flex items-center justify-between no-print">
           <Link
             href={`/tender/${params.tenderId}/reports`}
-            className="text-blue-600 hover:text-blue-800 text-sm"
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm"
           >
             ← রিপোর্ট মেনু
           </Link>
           <PrintButtons />
         </div>
 
-        <div className="print-content bg-white">
-          {/* Professional Header - Shows on every page */}
-          <div className="report-header">
-            <div className="text-center mb-4 pb-2 border-b-2 border-gray-800 print:mb-2 print:pb-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-1 print:text-base print:mb-0">
-                মেসার্স সোনালী ট্রেডার্স
-              </h1>
-              <p className="text-sm text-gray-600 mb-1 print:text-xs print:mb-0">
-                ঠিকানাঃ ১৪৫, হোমনা সরকারি কলেজ রোড, হোমনা, কুমিল্লা।
-              </p>
-              <h2 className="text-xl font-semibold text-blue-700 mt-2 print:text-sm print:mt-1">
-                {labels.tenderSummary}
-              </h2>
-            </div>
-
-            {/* Tender Information */}
-            <div className="grid grid-cols-2 gap-4 mb-4 text-sm print:gap-2 print:mb-2 print:text-xs">
-              <div>
-                <p>
-                  <strong>টেন্ডার কোড:</strong> {tender?.tender_code}
-                </p>
-                <p>
-                  <strong>প্রকল্পের নাম:</strong> {tender?.project_name}
-                </p>
+        <div className="print-content bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="report-header px-6 py-4 border-b border-slate-200">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900">
+                    মেসার্স সোনালী ট্রেডার্স
+                  </h1>
+                  <p className="text-sm text-slate-600">
+                    ঠিকানাঃ ১৪৫, হোমনা সরকারি কলেজ রোড, হোমনা, কুমিল্লা।
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700 mt-1">
+                    টেন্ডার সারসংক্ষেপ
+                  </p>
+                </div>
+                <div className="text-right text-sm text-slate-700">
+                  <p>
+                    <span className="font-semibold">রিপোর্ট তারিখ:</span>{" "}
+                    {formatDate(new Date().toISOString().split("T")[0])}
+                  </p>
+                  <p>
+                    <span className="font-semibold">টেন্ডার কোড:</span>{" "}
+                    {tender?.tender_code}
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
+              <div className="text-sm text-slate-700">
+                <p>
+                  <span className="font-semibold">টেন্ডার:</span>{" "}
+                  {tender?.project_name}
+                </p>
                 {tender?.location && (
                   <p>
-                    <strong>স্থান:</strong> {tender.location}
+                    <span className="font-semibold">স্থান:</span>{" "}
+                    {tender.location}
                   </p>
                 )}
-                {tender?.start_date && (
-                  <p>
-                    <strong>শুরুর তারিখ:</strong>{" "}
-                    {formatDate(tender.start_date)}
-                  </p>
-                )}
-                <p>
-                  <strong>রিপোর্টের তারিখ:</strong>{" "}
-                  {formatDate(new Date().toISOString().split("T")[0])}
-                </p>
               </div>
             </div>
           </div>
 
-          {/* Financial Summary */}
-          <div className="mb-4 page-break-inside-avoid print:mb-2">
-            <h3 className="text-lg font-bold mb-2 text-gray-800 border-b pb-2 print:text-sm print:mb-1 print:pb-1">
-              আর্থিক সারসংক্ষেপ
-            </h3>
-            <div className="bg-blue-50 p-4 rounded-lg text-center mb-3 print:p-2 print:mb-1">
-              <p className="text-4xl font-bold text-blue-700 print:text-xl">
-                {formatCurrency(grandTotal)}
-              </p>
-              <p className="text-gray-700 font-semibold print:text-xs">মোট খরচ</p>
+          <div className="content-body p-6 space-y-6">
+            <div className="summary-grid grid gap-4 lg:grid-cols-3">
+              <div className="summary-total rounded-lg border border-slate-200 p-4">
+                <p className="text-xs text-slate-600">মোট প্রকল্প খরচ</p>
+                <p className="text-3xl font-bold text-slate-900 mt-1">
+                  {formatCurrency(grandTotal)}
+                </p>
+              </div>
+
+              <div className="lg:col-span-2 rounded-lg border border-slate-200 p-4">
+                <h3 className="section-title text-sm font-semibold text-slate-700 mb-2">
+                  খরচের সারসংক্ষেপ
+                </h3>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-600">
+                      <th className="text-left py-2">খাত</th>
+                      <th className="text-right py-2">টাকা</th>
+                      <th className="text-right py-2">শতাংশ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-slate-100">
+                      <td className="py-2">শ্রমিক</td>
+                      <td className="text-right py-2">
+                        {formatCurrency(laborTotal)}
+                      </td>
+                      <td className="text-right py-2">
+                        {laborPercent.toFixed(1)}%
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-100">
+                      <td className="py-2">মালামাল</td>
+                      <td className="text-right py-2">
+                        {formatCurrency(totalMaterials)}
+                      </td>
+                      <td className="text-right py-2">
+                        {materialsPercent.toFixed(1)}%
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-100 text-xs text-slate-500">
+                      <td className="py-1 pl-4">- সরাসরি ক্রয়</td>
+                      <td className="text-right py-1">
+                        {formatCurrency(materialsTotal)}
+                      </td>
+                      <td></td>
+                    </tr>
+                    <tr className="border-b border-slate-100 text-xs text-slate-500">
+                      <td className="py-1 pl-4">- ভেন্ডার ক্রয়</td>
+                      <td className="text-right py-1">
+                        {formatCurrency(vendorTotal)}
+                      </td>
+                      <td></td>
+                    </tr>
+                    <tr className="border-b border-slate-100">
+                      <td className="py-2">সাইট খরচ</td>
+                      <td className="text-right py-2">
+                        {formatCurrency(activitiesTotal)}
+                      </td>
+                      <td className="text-right py-2">
+                        {activitiesPercent.toFixed(1)}%
+                      </td>
+                    </tr>
+                    <tr className="border-b border-slate-100">
+                      <td className="py-2">অন্যান্য</td>
+                      <td className="text-right py-2">
+                        {formatCurrency(otherExpensesTotal)}
+                      </td>
+                      <td className="text-right py-2">
+                        {otherPercent.toFixed(1)}%
+                      </td>
+                    </tr>
+                    <tr className="font-semibold">
+                      <td className="pt-2">সর্বমোট</td>
+                      <td className="text-right pt-2">
+                        {formatCurrency(grandTotal)}
+                      </td>
+                      <td className="text-right pt-2">100%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <table className="w-full text-sm print:text-xs">
-              <thead>
-                <tr className="border-b-2 border-gray-800">
-                  <th className="text-left py-2 print:py-1">খাত</th>
-                  <th className="text-right py-2 print:py-1">টাকা</th>
-                  <th className="text-right py-2 print:py-1">শতাংশ</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b">
-                  <td className="py-2 font-semibold print:py-1">শ্রমিক খরচ</td>
-                  <td className="text-right py-2 print:py-1">
-                    {formatCurrency(laborTotal)}
-                  </td>
-                  <td className="text-right py-2 print:py-1">
-                    {laborPercent.toFixed(1)}%
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-semibold print:py-1">মালামাল</td>
-                  <td className="text-right py-2 print:py-1">
-                    {formatCurrency(totalMaterials)}
-                  </td>
-                  <td className="text-right py-2 print:py-1">
-                    {materialsPercent.toFixed(1)}%
-                  </td>
-                </tr>
-                <tr className="border-b pl-4">
-                  <td className="py-1 pl-6 text-gray-600 text-xs print:py-0">
-                    - সাধারণ মালামাল
-                  </td>
-                  <td className="text-right py-1 text-gray-700 print:py-0">
-                    {formatCurrency(materialsTotal)}
-                  </td>
-                  <td></td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-1 pl-6 text-gray-600 text-xs print:py-0">
-                    - ভেন্ডর ক্রয়
-                  </td>
-                  <td className="text-right py-1 text-gray-700 print:py-0">
-                    {formatCurrency(vendorTotal)}
-                  </td>
-                  <td></td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-semibold print:py-1">কাজের খরচ</td>
-                  <td className="text-right py-2 print:py-1">
-                    {formatCurrency(activitiesTotal)}
-                  </td>
-                  <td className="text-right py-2 print:py-1">
-                    {activitiesPercent.toFixed(1)}%
-                  </td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-2 font-semibold print:py-1">অন্যান্য খরচ</td>
-                  <td className="text-right py-2 print:py-1">
-                    {formatCurrency(otherExpensesTotal)}
-                  </td>
-                  <td className="text-right py-2 print:py-1">
-                    {otherPercent.toFixed(1)}%
-                  </td>
-                </tr>
-                <tr className="border-t-2 border-gray-800 font-bold">
-                  <td className="py-3 print:py-1">সর্বমোট</td>
-                  <td className="text-right py-3 text-lg print:py-1 print:text-sm">
-                    {formatCurrency(grandTotal)}
-                  </td>
-                  <td className="text-right py-3 print:py-1">100%</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
 
-          {/* Top Materials - Only show top 3 for compact print */}
-          <Card className="mb-6 page-break-inside-avoid print:mb-2 print:hidden">
-            <CardHeader className="print:pb-0 print:pt-1">
-              <CardTitle className="print:text-xs">শীর্ষ ৩ মালামাল</CardTitle>
-            </CardHeader>
-            <CardContent className="print:p-1">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 print:py-0 print:text-xs">মালামাল</th>
-                    <th className="text-right py-2 print:py-0 print:text-xs">পরিমাণ</th>
-                    <th className="text-right py-2 print:py-0 print:text-xs">মোট খরচ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topMaterials.slice(0, 3).map((m: any, idx) => (
-                    <tr key={idx} className="border-b">
-                      <td className="py-2 print:py-0 print:text-xs">{m.name}</td>
-                      <td className="text-right py-2 print:py-0 print:text-xs">
-                        {m.quantity} {m.unit}
-                      </td>
-                      <td className="text-right py-2 font-semibold">
-                        {formatCurrency(m.total)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-
-          {/* Top Activities */}
-          <Card className="mb-6 no-print">
-            <CardHeader>
-              <CardTitle>শীর্ষ ৫ কাজের খরচ</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">বিভাগ</th>
-                    <th className="text-right py-2">মোট খরচ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topActivities.map(([cat, amt]: any, idx) => (
-                    <tr key={idx} className="border-b">
-                      <td className="py-2">{cat}</td>
-                      <td className="text-right py-2 font-semibold">
-                        {formatCurrency(amt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-
-          {/* Person-wise Advances & Expenses */}
-          <div className="mb-4 page-break-inside-avoid print:mb-2">
-            <h3 className="text-lg font-bold mb-2 text-gray-800 border-b pb-2 print:text-sm print:mb-1 print:pb-1">
-              ব্যক্তিভিত্তিক অগ্রিম ও খরচ হিসাব
-            </h3>
-            {balances && balances.length > 0 ? (
-              <>
-                <table className="w-full text-sm border-collapse print:text-xs">
-                <thead>
-                  <tr className="border-b-2 border-gray-800">
-                    <th className="text-left py-2 px-2 print:py-1 print:px-1">ব্যক্তি</th>
-                    <th className="text-left py-2 px-2 print:py-1 print:px-1 print:hidden">পদবি</th>
-                    <th className="text-right py-2 px-2 print:py-1 print:px-1">অগ্রিম প্রদান</th>
-                    <th className="text-right py-2 px-2 print:py-1 print:px-1">খরচ জমা</th>
-                    <th className="text-right py-2 px-2 print:py-1 print:px-1">ব্যালেন্স</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {balances.map((bal: any) => (
-                    <tr key={bal.person_id} className="border-b">
-                      <td className="py-2 px-2 font-medium print:py-1 print:px-1 print:text-xs">
-                        {bal.person_name}
-                      </td>
-                      <td className="py-2 px-2 text-gray-600 print:py-1 print:px-1 print:hidden">{bal.role}</td>
-                      <td className="text-right py-2 px-2 print:py-1 print:px-1">
-                        {formatCurrency(bal.total_advances)}
-                      </td>
-                      <td className="text-right py-2 px-2 print:py-1 print:px-1">
-                        {formatCurrency(bal.total_expenses)}
-                      </td>
-                      <td
-                        className={`text-right py-2 px-2 font-semibold print:py-1 print:px-1 ${
-                          bal.balance > 0
-                            ? "text-green-700"
-                            : bal.balance < 0
-                            ? "text-red-700"
-                            : ""
-                        }`}
-                      >
-                        {bal.balance >= 0
-                          ? formatCurrency(bal.balance)
-                          : `(${formatCurrency(Math.abs(bal.balance))})`}
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="border-t-2 border-gray-800 font-bold">
-                    <td colSpan={2} className="py-3 px-2 print:py-1 print:px-1 print:hidden">
-                      সর্বমোট
-                    </td>
-                    <td className="py-3 px-2 print:py-1 print:px-1 print:block print:text-left">
-                      সর্বমোট
-                    </td>
-                    <td className="text-right py-3 px-2 print:py-1 print:px-1">
-                      {formatCurrency(advancesTotal)}
-                    </td>
-                    <td className="text-right py-3 px-2 print:py-1 print:px-1">
-                      {formatCurrency(expensesTotal)}
-                    </td>
-                    <td
-                      className={`text-right py-3 px-2 text-lg print:py-1 print:px-1 print:text-sm ${
-                        pendingAdvances > 0 ? "text-green-700" : "text-red-700"
-                      }`}
+            <div className="section">
+              <h3 className="section-title text-sm font-semibold text-slate-700 mb-2">
+                ভেন্ডার ভিত্তিক হিসাব
+              </h3>
+              <div className="vendor-table border border-slate-200 rounded-lg overflow-hidden">
+                <div className="vendor-header grid grid-cols-12 gap-2 px-3 py-2 bg-slate-50 text-xs font-semibold text-slate-700">
+                  <div className="col-span-3">ভেন্ডার</div>
+                  <div className="col-span-7">আইটেম</div>
+                  <div className="col-span-2 text-right">মোট</div>
+                </div>
+                {visibleVendors.length > 0 ? (
+                  visibleVendors.map((v: any) => (
+                    <div
+                      key={v.name}
+                      className="vendor-row grid grid-cols-12 gap-2 px-3 py-2 border-t border-slate-100"
                     >
-                      {formatCurrency(Math.abs(pendingAdvances))}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <div className="mt-2 p-2 bg-gray-50 border border-gray-300 rounded text-xs print:mt-1 print:p-1 print:text-xs no-print">
-                <p>
-                  <strong>নোট:</strong>
-                </p>
-                <ul className="list-disc list-inside mt-1 space-y-1">
-                  <li>সবুজ = ব্যক্তির কাছে টাকা বাকি আছে</li>
-                  <li>লাল (বন্ধনীতে) = ব্যক্তি বেশি খরচ করেছে</li>
-                </ul>
+                      <div className="col-span-3 text-sm font-medium text-slate-800">
+                        {v.name}
+                      </div>
+                      <div className="col-span-7 text-xs text-slate-600">
+                        <div className="space-y-1">
+                          {v.items
+                            .slice(0, maxVendorItems)
+                            .map((item: any, i: number) => {
+                              const quantityLabel =
+                                item.quantity && item.unit
+                                  ? ` (${item.quantity} ${item.unit})`
+                                  : item.quantity
+                                  ? ` (${item.quantity})`
+                                  : "";
+                              return (
+                                <div key={i}>
+                                  {item.item}
+                                  {quantityLabel} -{" "}
+                                  {formatCurrency(item.amount)}
+                                </div>
+                              );
+                            })}
+                          {v.items.length > maxVendorItems && (
+                            <div className="text-[11px] text-slate-500">
+                              ...এবং আরও {v.items.length - maxVendorItems}টি
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-span-2 text-right text-sm font-semibold text-slate-800">
+                        {formatCurrency(v.total)}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-3 py-4 text-sm text-slate-500">
+                    কোনো ভেন্ডার তথ্য পাওয়া যায়নি।
+                  </div>
+                )}
               </div>
-              </>
-            ) : (
-              <p className="text-gray-600 text-sm py-4">কোনো ব্যক্তিভিত্তিক তথ্য পাওয়া যায়নি।</p>
-            )}
+              {sortedVendors.length > maxVendors && (
+                <p className="text-xs text-slate-500 mt-2">
+                  ...এবং আরও {sortedVendors.length - maxVendors} জন ভেন্ডার
+                </p>
+              )}
+            </div>
+
+            <div className="section grid gap-4 lg:grid-cols-2">
+              <div className="rounded-lg border border-slate-200 p-4">
+                <h3 className="section-title text-sm font-semibold text-slate-700 mb-2">
+                  সাইট খরচ সারসংক্ষেপ
+                </h3>
+                {visibleActivities.length > 0 ? (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-600">
+                        <th className="text-left py-2">ক্যাটাগরি</th>
+                        <th className="text-right py-2">মোট</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleActivities.map((a: any) => (
+                        <tr
+                          key={a.category}
+                          className="border-b border-slate-100"
+                        >
+                          <td className="py-2">{a.category}</td>
+                          <td className="text-right py-2">
+                            {formatCurrency(a.total)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    কোনো তথ্য পাওয়া যায়নি।
+                  </p>
+                )}
+                {sortedActivities.length > maxActivities && (
+                  <p className="text-xs text-slate-500 mt-2">
+                    ...এবং আরও {sortedActivities.length - maxActivities}টি
+                    ক্যাটাগরি
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-lg border border-slate-200 p-4">
+                <h3 className="section-title text-sm font-semibold text-slate-700 mb-2">
+                  ব্যক্তিভিত্তিক হিসাব
+                </h3>
+                {visibleBalances.length > 0 ? (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-600">
+                        <th className="text-left py-2">ব্যক্তি</th>
+                        <th className="text-right py-2">অগ্রিম</th>
+                        <th className="text-right py-2">খরচ</th>
+                        <th className="text-right py-2">ব্যালেন্স</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleBalances.map((bal: any) => (
+                        <tr
+                          key={bal.person_id}
+                          className="border-b border-slate-100"
+                        >
+                          <td className="py-2 text-sm font-medium text-slate-800">
+                            {bal.person_name}
+                          </td>
+                          <td className="text-right py-2">
+                            {formatCurrency(bal.total_advances)}
+                          </td>
+                          <td className="text-right py-2">
+                            {formatCurrency(bal.total_expenses)}
+                          </td>
+                          <td
+                            className={`text-right py-2 font-semibold ${
+                              bal.balance > 0
+                                ? "text-green-700"
+                                : bal.balance < 0
+                                ? "text-red-700"
+                                : "text-slate-700"
+                            }`}
+                          >
+                            {bal.balance >= 0
+                              ? formatCurrency(bal.balance)
+                              : `(${formatCurrency(Math.abs(bal.balance))})`}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="font-semibold">
+                        <td className="pt-2">সর্বমোট</td>
+                        <td className="text-right pt-2">
+                          {formatCurrency(advancesTotal)}
+                        </td>
+                        <td className="text-right pt-2">
+                          {formatCurrency(expensesTotal)}
+                        </td>
+                        <td
+                          className={`text-right pt-2 ${
+                            pendingAdvances > 0
+                              ? "text-green-700"
+                              : "text-red-700"
+                          }`}
+                        >
+                          {formatCurrency(Math.abs(pendingAdvances))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    কোনো তথ্য পাওয়া যায়নি।
+                  </p>
+                )}
+                {sortedBalances.length > maxBalances && (
+                  <p className="text-xs text-slate-500 mt-2">
+                    ...এবং আরও {sortedBalances.length - maxBalances} জন
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <style jsx global>{`
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+          @media print {
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            @page {
+              size: A4 portrait;
+              margin: 12mm;
+            }
+
+            body {
+              background: white !important;
+              font-size: 9pt !important;
+              line-height: 1.3 !important;
+            }
+
+            aside,
+            nav,
+            header,
+            footer,
+            .no-print {
+              display: none !important;
+            }
+
+            main {
+              overflow: visible !important;
+            }
+
+            .h-screen {
+              height: auto !important;
+            }
+
+            .overflow-hidden {
+              overflow: visible !important;
+            }
+
+            .print-content {
+              box-shadow: none !important;
+              border-radius: 0 !important;
+              border: none !important;
+            }
+
+            .report-header {
+              padding: 0 0 0.4rem 0 !important;
+              border-bottom: 1px solid #e5e7eb !important;
+            }
+
+            .content-body {
+              padding: 0.4rem 0 0 !important;
+              gap: 0.4rem !important;
+            }
+
+            .summary-grid {
+              gap: 0.4rem !important;
+              grid-template-columns: 1fr 2fr !important;
+            }
+
+            .summary-total {
+              padding: 0.4rem !important;
+            }
+
+            .section {
+              margin-top: 0.4rem !important;
+            }
+
+            .section-title {
+              font-size: 9pt !important;
+              margin-bottom: 0.2rem !important;
+            }
+
+            table {
+              font-size: 8pt !important;
+            }
+
+            th,
+            td {
+              padding-top: 0.2rem !important;
+              padding-bottom: 0.2rem !important;
+            }
+
+            .vendor-header,
+            .vendor-row {
+              grid-template-columns: 3fr 7fr 2fr !important;
+            }
+
+            .vendor-row {
+              padding-top: 0.2rem !important;
+              padding-bottom: 0.2rem !important;
+            }
           }
-          
-          body {
-            background: white !important;
-            font-size: 9pt !important;
-            line-height: 1.3 !important;
-            margin: 0;
-            padding: 0;
-          }
-          
-          .no-print, nav, button, .sidebar, header, footer {
-            display: none !important;
-          }
-          
-          .print-content {
-            background: white !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            max-width: 100% !important;
-          }
-          
-          @page {
-            size: A4 portrait;
-            margin: 12mm 10mm;
-          }
-          
-          /* Header */
-          .report-header {
-            margin-bottom: 0.5rem !important;
-            page-break-after: avoid;
-          }
-          
-          .report-header h1 {
-            font-size: 14pt !important;
-            margin-bottom: 0.2rem !important;
-          }
-          
-          .report-header h2 {
-            font-size: 11pt !important;
-            margin-top: 0.2rem !important;
-          }
-          
-          .report-header p {
-            font-size: 8pt !important;
-            margin: 0.1rem 0 !important;
-          }
-          
-          .report-header .border-b-2 {
-            padding-bottom: 0.3rem !important;
-            margin-bottom: 0.4rem !important;
-          }
-          
-          .report-header .grid {
-            margin-bottom: 0.4rem !important;
-            gap: 0.3rem !important;
-          }
-          
-          /* Sections */
-          .mb-6, .mb-4 {
-            margin-bottom: 0.5rem !important;
-          }
-          
-          h3 {
-            font-size: 10pt !important;
-            margin-bottom: 0.3rem !important;
-            padding-bottom: 0.2rem !important;
-            page-break-after: avoid;
-          }
-          
-          /* Financial summary */
-          .bg-blue-50 {
-            padding: 0.4rem !important;
-            margin-bottom: 0.4rem !important;
-            background-color: #eff6ff !important;
-            page-break-inside: avoid;
-          }
-          
-          .bg-blue-50 p:first-child {
-            font-size: 16pt !important;
-          }
-          
-          .bg-blue-50 p:last-child {
-            font-size: 9pt !important;
-          }
-          
-          /* Tables */
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 0.4rem !important;
-            font-size: 8pt !important;
-          }
-          
-          thead tr {
-            background-color: #f3f4f6 !important;
-            page-break-after: avoid;
-          }
-          
-          th {
-            padding: 0.2rem 0.3rem !important;
-            font-size: 8pt !important;
-            font-weight: 600;
-            border: 1px solid #e5e7eb;
-          }
-          
-          td {
-            padding: 0.15rem 0.3rem !important;
-            font-size: 8pt !important;
-            line-height: 1.2 !important;
-            border: 1px solid #e5e7eb;
-          }
-          
-          tbody tr {
-            page-break-inside: avoid;
-          }
-          
-          tbody tr:nth-child(even) {
-            background-color: #fafafa !important;
-          }
-          
-          /* Lists */
-          ul {
-            margin: 0.2rem 0 !important;
-            padding-left: 1.2rem !important;
-          }
-          
-          ul li {
-            font-size: 7pt !important;
-            line-height: 1.3 !important;
-            margin-bottom: 0.1rem !important;
-          }
-          
-          /* Grid */
-          .grid-cols-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.4rem !important;
-            page-break-inside: avoid;
-          }
-          
-          /* Page breaks */
-          .page-break-inside-avoid {
-            page-break-inside: avoid;
-          }
-          
-          .page-break-before {
-            page-break-before: auto;
-          }
-          
-          /* Colors */
-          .text-green-700, .text-green-600 {
-            color: #15803d !important;
-          }
-          
-          .text-red-700, .text-red-600 {
-            color: #b91c1c !important;
-          }
-          
-          .text-blue-700, .text-blue-600 {
-            color: #1d4ed8 !important;
-          }
-          
-          .bg-gray-50 {
-            background-color: #f9fafb !important;
-            padding: 0.3rem !important;
-          }
-          
-          /* Spacing */
-          .space-y-1 > * + * {
-            margin-top: 0.2rem !important;
-          }
-          
-          /* Borders */
-          .border-b-2 {
-            border-bottom: 2px solid #1f2937 !important;
-          }
-          
-          .border-b {
-            border-bottom: 1px solid #d1d5db !important;
-          }
-          
-          /* Remove unnecessary styling for print */
-          * {
-            box-shadow: none !important;
-          }
-          
-          .font-bold {
-            font-weight: 600 !important;
-          }
-        }
-      `}</style>
+        `}</style>
       </div>
     </div>
   );

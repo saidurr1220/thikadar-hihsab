@@ -45,7 +45,7 @@ export default function Sidebar({ tenders, userRole }: SidebarProps) {
       <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-br from-blue-50 to-slate-50">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-            ঠ
+            ঠি
           </div>
           <div className="flex-1">
             <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
