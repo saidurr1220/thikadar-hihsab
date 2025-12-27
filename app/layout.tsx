@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Bengali } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const notoSansBengali = Noto_Sans_Bengali({
@@ -30,7 +31,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="bn" suppressHydrationWarning>
-      <body className={notoSansBengali.variable}>{children}</body>
+      <body className={notoSansBengali.variable}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
