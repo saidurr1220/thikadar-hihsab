@@ -224,7 +224,7 @@ export default function VendorDetailPage({
         tender_id: params.tenderId,
         vendor_id: params.vendorId,
         payment_date: paymentData.paymentDate,
-        amount: parseFloat(paymentData.amount),
+        amount: Number(parseFloat(paymentData.amount).toFixed(2)),
         payment_method: paymentData.paymentMethod,
         reference: paymentData.reference || null,
         notes: paymentData.notes || null,
@@ -266,14 +266,11 @@ export default function VendorDetailPage({
         // Delete purchase
         if (txn.source === "vendor_purchase") {
           // First, find and delete any auto-generated payment for this specific purchase
-          // The payment would have been created on the same date with matching amount
           const { data: relatedPayments } = await supabase
             .from("vendor_payments")
             .select("id")
             .eq("vendor_id", params.vendorId)
-            .eq("payment_date", txn.date)
-            .eq("amount", txn.amount)
-            .ilike("notes", `%Auto payment for%`);
+            .ilike("notes", `%Payment for purchase ${txn.id}%`);
 
           if (relatedPayments && relatedPayments.length > 0) {
             await supabase
@@ -294,9 +291,7 @@ export default function VendorDetailPage({
             .from("vendor_payments")
             .select("id")
             .eq("vendor_id", params.vendorId)
-            .eq("payment_date", txn.date)
-            .eq("amount", txn.amount)
-            .ilike("notes", `%Auto payment for%`);
+            .ilike("notes", `%Payment for purchase ${txn.id}%`);
 
           if (relatedPayments && relatedPayments.length > 0) {
             await supabase
